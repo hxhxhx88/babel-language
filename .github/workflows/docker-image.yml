@@ -1,0 +1,35 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: check out code
+      uses: actions/checkout@v3
+    - name: set variables
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short=8 HEAD)"
+    - name: configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    - name: login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    - name: build
+      env:
+        REGISTRY_HOST: ${{ steps.login-ecr.outputs.registry }}
+        REGISTRY_REPO: babel
+        BUILD_COMMIT_IDENTIFIER: ${{ steps.vars.outputs.sha_short }}
+      run: |
+        task docker:devel
+        task docker:runtime
+        docker push $REGISTRY_HOST/$REGISTRY_REPO:runtime-$BUILD_COMMIT_IDENTIFIER
