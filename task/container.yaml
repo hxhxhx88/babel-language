@@ -1,0 +1,25 @@
+version: '3'
+
+tasks:
+  devel:
+    cmds:
+      - |
+        docker build \
+          --rm \
+          -t {{ .REGISTRY_HOST }}/{{ .REGISTRY_REPO }}:devel-{{ .BUILD_COMMIT_IDENTIFIER }} \
+          -f devel.Dockerfile \
+          ..
+    dir: docker
+
+  runtime:
+    cmds:
+      - |
+        docker build \
+          --rm \
+          -t {{ .REGISTRY_HOST }}/{{ .REGISTRY_REPO }}:runtime-{{ .BUILD_COMMIT_IDENTIFIER }} \
+          --build-arg REGISTRY_HOST="{{ .REGISTRY_HOST }}" \
+          --build-arg REGISTRY_REPO="{{ .REGISTRY_REPO }}" \
+          --build-arg BUILD_COMMIT_IDENTIFIER="{{ .BUILD_COMMIT_IDENTIFIER }}" \
+          -f runtime.Dockerfile \
+          ..
+    dir: docker

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 
 	"github.com/labstack/echo/v4"
@@ -8,9 +9,13 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"babel/backend"
-	"babel/openapi"
+	"babel/app/backend"
+	"babel/openapi/gen/babelapi"
 )
+
+//go:embed app/frontend/build/*
+var frontend embed.FS
+var frontendFS = echo.MustSubFS(frontend, "app/frontend/build")
 
 var c struct {
 	Port int
@@ -22,9 +27,16 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 
+	// backend
 	s := backend.New()
-	openapi.RegisterHandlers(e, s)
+	h := babelapi.NewStrictHandler(s, nil)
+	babelapi.RegisterHandlers(e.Group("/api"), h)
 
+	// frontend
+	e.StaticFS("/view", frontendFS)
+	e.StaticFS("/", frontendFS)
+
+	// start
 	lisAddr := fmt.Sprintf(":%d", c.Port)
 	e.Logger.Fatal(e.Start(lisAddr))
 }

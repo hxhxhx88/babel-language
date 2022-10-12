@@ -1,0 +1,22 @@
+version: '3'
+
+tasks:
+  start:
+    cmds: 
+      - npm start
+    dir: app/frontend
+
+  build:
+    cmds: 
+      - npm run build
+    dir: app/frontend
+
+  lint:
+    cmds: 
+      - npx eslint src
+    dir: app/frontend
+
+  openapi:
+    cmds:
+      - npx openapi-typescript ../../openapi/gen/babel.json --make-paths-enum --immutable-types --output src/openapi/babel.ts
+    dir: app/frontend

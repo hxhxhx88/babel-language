@@ -1,0 +1,16 @@
+version: '3'
+
+env:
+  BUILD_COMMIT_IDENTIFIER: "{{ .BUILD_COMMIT_IDENTIFIER }}"
+
+tasks:
+  up:
+    cmds:
+      - docker compose up -d --no-recreate
+    dir: deploy
+
+  down:
+    cmds:
+      - docker-compose stop
+      - docker compose rm -f
+    dir: deploy

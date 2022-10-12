@@ -1,0 +1,22 @@
+version: '3'
+
+vars:
+  LDFLAGS: |-
+    -X babel/app/buildtime.CommitIdentifier={{ .BUILD_COMMIT_IDENTIFIER }}
+    -X babel/app/buildtime.CommitTime={{ .BUILD_COMMIT_TIME }}
+    -X babel/app/buildtime.Version={{ .BUILD_VERSION }}
+
+tasks:
+  start:
+    cmds: 
+      - go run -ldflags "{{ .LDFLAGS }}" *.go
+
+  build:
+    cmds: 
+      - CGO_ENABLED=0 go build -ldflags "{{ .LDFLAGS }}" -o build/babel-server -trimpath main.go
+
+  openapi:
+    cmds:
+      - mkdir gen/babelapi
+      - oapi-codegen --config babel-oapi.yaml gen/babel.json > gen/babelapi/openapi.go
+    dir: openapi

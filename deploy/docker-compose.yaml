@@ -1,0 +1,6 @@
+version: "3.9"
+services:
+  server:
+    image: ${REGISTRY_HOST}/${REGISTRY_REPO}:runtime-${BUILD_COMMIT_IDENTIFIER}
+    ports:
+      - "12346:12346"

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"gopkg.in/yaml.v2"
-
 	"babel/openapi"
 )
 
@@ -19,9 +17,9 @@ func main() {
 		return
 	}
 
-	spec := openapi.New()
+	babelapi := openapi.NewBabel()
 
-	data, err := yaml.Marshal(spec)
+	data, err := babelapi.MarshalJSON()
 	mustOk(err)
 
 	mustOk(os.WriteFile(*output, data, 0644))

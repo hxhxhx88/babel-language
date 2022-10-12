@@ -1,24 +1,35 @@
 version: '3'
 
+dotenv: ['.env.local', '.env']
+
+vars:
+  DEFAULT_BUILD_COMMIT_IDENTIFIER:
+    # The default length of the short hash is not gauranteed to be 8, typically 7 in fact.
+    # To match github `CI_COMMIT_SHORT_SHA` which is 8 characters long, we manually set `--short=8`.
+    sh: git rev-parse --short=8 HEAD 2>/dev/null || true
+  DEFAULT_BUILD_COMMIT_TIME:
+    sh: git log -1 --format=%cd --date=iso-strict 2>/dev/null || true
+  BUILD_COMMIT_IDENTIFIER: '{{ .BUILD_COMMIT_IDENTIFIER | default .DEFAULT_BUILD_COMMIT_IDENTIFIER }}'
+  BUILD_COMMIT_TIME: '{{ .BUILD_COMMIT_TIME | default .DEFAULT_BUILD_COMMIT_TIME }}'
+  BUILD_VERSION: '{{ .BUILD_VERSION | default .BUILD_COMMIT_IDENTIFIER }}'
+
+includes:
+  frontend: task/frontend.yaml
+  backend: task/backend.yaml
+  container: task/container.yaml
+  deploy: task/deploy.yaml
+
 tasks:
-  frontend:start:
-    cmds: 
-      - npm start
-    dir: frontend
-  
-  frontend:lint:
-    cmds: 
-      - npx eslint src
-    dir: frontend
-
-  openapi:gen:
-    vars:
-      SAVE_DIR: openapi
-      SPEC_PATH: openapi/api.gen.yaml
+  openapi:
     cmds:
-      - go run cmd/openapi-gen/*.go --output {{ .SPEC_PATH }}
-      - oapi-codegen -package openapi {{ .SPEC_PATH }} > {{ .SAVE_DIR }}/api.gen.go
+      - rm -rf openapi/gen
+      - mkdir -p openapi/gen
+      - go run cmd/openapi-gen/*.go --output openapi/gen/babel.json
+      - task: backend:openapi
+      - task: frontend:openapi
 
-  backend:start:
-    cmds: 
-      - go run *.go
+  build:
+    cmds:
+      - rm -rf build
+      - task: frontend:build
+      - task: backend:build

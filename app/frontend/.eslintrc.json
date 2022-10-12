@@ -24,7 +24,10 @@
             "version": "detect"
         }
     },
-    "ignorePatterns": ["react-app-env.d.ts"],
+    "ignorePatterns": [
+        "react-app-env.d.ts",
+        "openapi/*"
+    ],
     "rules": {
         "indent": ["error", 4],
         "linebreak-style": ["error", "unix"],
