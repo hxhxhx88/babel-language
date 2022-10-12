@@ -1,7 +1,8 @@
 import React from "react"
+import { Button } from "antd"
 
 function App (): JSX.Element {
-    return <div>Hello world</div>
+    return <Button type="primary">Hello world</Button>
 }
 
 export default App
