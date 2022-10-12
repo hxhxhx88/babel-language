@@ -9,7 +9,7 @@ tasks:
           -t {{ .REGISTRY_HOST }}/{{ .REGISTRY_REPO }}:devel-{{ .BUILD_COMMIT_IDENTIFIER }} \
           -f devel.Dockerfile \
           ..
-    dir: docker
+    dir: container
 
   runtime:
     cmds:
@@ -22,4 +22,4 @@ tasks:
           --build-arg BUILD_COMMIT_IDENTIFIER="{{ .BUILD_COMMIT_IDENTIFIER }}" \
           -f runtime.Dockerfile \
           ..
-    dir: docker
+    dir: container
