@@ -32,5 +32,11 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:12346"
+  "proxy": "http://localhost:12346",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.40.0",
+    "@typescript-eslint/parser": "^5.40.0",
+    "eslint": "^8.25.0",
+    "eslint-plugin-react": "^7.31.10"
+  }
 }
