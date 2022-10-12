@@ -12,6 +12,4 @@ sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/b
 cd /project/app/frontend && npm install && \
 # pre-install all golang dependencies
 cd /project && go mod download -x && \
-go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen && \
-# clear
-rm -rf /project
+go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen
