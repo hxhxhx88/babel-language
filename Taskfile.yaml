@@ -1,0 +1,24 @@
+version: '3'
+
+tasks:
+  frontend:start:
+    cmds: 
+      - npm start
+    dir: frontend
+  
+  frontend:lint:
+    cmds: 
+      - npx eslint src
+    dir: frontend
+
+  openapi:gen:
+    vars:
+      SAVE_DIR: openapi
+      SPEC_PATH: openapi/api.gen.yaml
+    cmds:
+      - go run cmd/openapi-gen/*.go --output {{ .SPEC_PATH }}
+      - oapi-codegen -package openapi {{ .SPEC_PATH }} > {{ .SAVE_DIR }}/api.gen.go
+
+  backend:start:
+    cmds: 
+      - go run *.go
