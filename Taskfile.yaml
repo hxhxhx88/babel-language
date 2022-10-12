@@ -1,6 +1,6 @@
 version: '3'
 
-dotenv: ['.env.local', '.env']
+dotenv: ['.env.local']
 
 vars:
   DEFAULT_BUILD_COMMIT_IDENTIFIER:
