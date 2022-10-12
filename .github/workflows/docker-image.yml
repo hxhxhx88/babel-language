@@ -32,6 +32,6 @@ jobs:
         REGISTRY_REPO: babel
         BUILD_COMMIT_IDENTIFIER: ${{ steps.vars.outputs.sha_short }}
       run: |
-        task docker:devel
-        task docker:runtime
+        task container:devel
+        task container:runtime
         docker push $REGISTRY_HOST/$REGISTRY_REPO:runtime-$BUILD_COMMIT_IDENTIFIER
