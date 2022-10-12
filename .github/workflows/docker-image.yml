@@ -24,6 +24,8 @@ jobs:
     - name: login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
+    - name: install tools
+      run: sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
     - name: build
       env:
         REGISTRY_HOST: ${{ steps.login-ecr.outputs.registry }}
