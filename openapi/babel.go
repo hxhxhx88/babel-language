@@ -31,8 +31,89 @@ func NewBabel() *openapi3.T {
 									"commit_identifier": mStringField,
 									"commit_time":       mStringField,
 									"version":           mStringField,
+									"corpus": &openapi3.SchemaRef{
+										Ref: "#/components/schemas/CorpusDraft",
+									},
 								},
 							}),
+						},
+					},
+				},
+			},
+			"/corpuses": &openapi3.PathItem{
+				Post: &openapi3.Operation{
+					Summary:     "Create a corpus",
+					OperationID: "CreateCorpus",
+					RequestBody: &openapi3.RequestBodyRef{
+						Value: openapi3.NewRequestBody().WithJSONSchema(&openapi3.Schema{
+							Type:     openapi3.TypeObject,
+							Required: []string{"corpus"},
+							Properties: openapi3.Schemas{
+								"corpus": &openapi3.SchemaRef{
+									Ref: "#/components/schemas/CorpusDraft",
+								},
+							},
+						}),
+					},
+					Responses: openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Value: openapi3.NewResponse().WithDescription("Success").WithJSONSchema(&openapi3.Schema{
+								Type:     openapi3.TypeObject,
+								Required: []string{"id"},
+								Properties: openapi3.Schemas{
+									"id": mIdField,
+								},
+							}),
+						},
+					},
+				},
+			},
+		},
+		Components: openapi3.Components{
+			Schemas: openapi3.Schemas{
+				"CorpusDraft": &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type:     openapi3.TypeObject,
+						Required: []string{"title", "original_language_iso_639_3"},
+						Properties: openapi3.Schemas{
+							"title":                       mStringField,
+							"original_language_iso_639_3": mStringField,
+							"translations": &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									Type: openapi3.TypeArray,
+									Items: &openapi3.SchemaRef{
+										Ref: "#/components/schemas/TranslationDraft",
+									},
+								},
+							},
+						},
+					},
+				},
+				"TranslationDraft": &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type:     openapi3.TypeObject,
+						Required: []string{"language_iso_639_3"},
+						Properties: openapi3.Schemas{
+							"language_iso_639_3": mStringField,
+							"blocks": &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									Type: openapi3.TypeArray,
+									Items: &openapi3.SchemaRef{
+										Ref: "#/components/schemas/BlockDraft",
+									},
+								},
+							},
+						},
+					},
+				},
+				"BlockDraft": &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type:     openapi3.TypeObject,
+						Required: []string{"content", "rank", "uuid"},
+						Properties: openapi3.Schemas{
+							"content": mStringField,
+							"rank":    mIntField,
+							"uuid":    mStringField,
 						},
 					},
 				},
@@ -41,8 +122,20 @@ func NewBabel() *openapi3.T {
 	}
 }
 
+var mIdField = &openapi3.SchemaRef{
+	Value: &openapi3.Schema{
+		Type: openapi3.TypeString,
+	},
+}
+
 var mStringField = &openapi3.SchemaRef{
 	Value: &openapi3.Schema{
 		Type: openapi3.TypeString,
+	},
+}
+
+var mIntField = &openapi3.SchemaRef{
+	Value: &openapi3.Schema{
+		Type: openapi3.TypeInteger,
 	},
 }

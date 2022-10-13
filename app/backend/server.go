@@ -7,11 +7,24 @@ import (
 	"babel/openapi/gen/babelapi"
 )
 
-func New() babelapi.StrictServerInterface {
-	return &mServer{}
+func New(opts ...Option) (babelapi.StrictServerInterface, error) {
+	o := &Options{}
+	for _, opt := range opts {
+		opt(o)
+	}
+	if err := o.Validate(); err != nil {
+		return nil, err
+	}
+
+	s := &mServer{
+		options: o,
+	}
+
+	return s, nil
 }
 
 type mServer struct {
+	options *Options
 }
 
 func (s *mServer) GetMetadata(ctx context.Context, request babelapi.GetMetadataRequestObject) (babelapi.GetMetadataResponseObject, error) {
