@@ -1,6 +1,6 @@
 {
     "corpus_list": "corpus list",
-    "select_translation_prompt": "please select a translation",
+    "select_translation_prompt": "select translations",
     "error": "error",
     "error_no_translations": "missing translations"
 }
