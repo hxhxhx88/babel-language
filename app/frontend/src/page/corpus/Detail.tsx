@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom"
 import { DefaultService, Corpus } from "openapi/babel"
 import { Breadcrumb } from "antd"
 import { Link } from "react-router-dom"
+import { FormattedMessage } from "react-intl"
 
 import routePath from "route"
 import Layout from "Layout"
@@ -19,7 +20,9 @@ const CorpusDetail: FC<Props> = (props) => {
         <Layout>
             <Breadcrumb>
                 <Breadcrumb.Item>
-                    <Link to={routePath(`/corpuses`)}>Corpus List</Link>
+                    <Link to={routePath(`/corpuses`)}>
+                        <FormattedMessage id="corpus_list" />
+                    </Link>
                 </Breadcrumb.Item>
                 <Breadcrumb.Item>{corpus.title}</Breadcrumb.Item>
             </Breadcrumb>
