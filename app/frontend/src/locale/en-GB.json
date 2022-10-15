@@ -3,9 +3,10 @@
     "select_translation_prompt": "select translations",
     "error": "error",
     "error_no_translations": "missing translations",
-    "select_versions": "select versions",
     "selected_versions": "selected versions",
-    "select_version_prompt": "please select some versions to read",
+    "select_version_prompt": "please select some versions",
+    "select_versions": "select versions",
+    "reference_version": "reference version",
     "confirm": "confirm",
     "cancel": "cancel"
 }
