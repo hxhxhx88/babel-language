@@ -18,5 +18,5 @@ tasks:
 
   openapi:
     cmds:
-      - npx openapi-typescript ../../openapi/gen/babel.json --immutable-types --output src/openapi/babel.ts
+      - npx openapi-typescript-codegen --input ../../openapi/gen/babel.json --output src/openapi/babel
     dir: app/frontend

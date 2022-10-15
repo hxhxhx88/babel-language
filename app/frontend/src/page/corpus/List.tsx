@@ -1,21 +1,21 @@
 import { FC, useState, useEffect } from "react"
-import { components } from "openapi/babel"
+import { DefaultService, Corpus } from "openapi/babel"
 
-import { listCorpuses } from "api"
+import Layout from "Layout"
 
 const List: FC = () => {
-    const [corpuses, setCorpuses] = useState<readonly components["schemas"]["Corpus"][]>([])
+    const [corpuses, setCorpuses] = useState<Corpus[]>([])
 
     useEffect(() => {
-        listCorpuses({}).then((resp) => {
-            setCorpuses(resp.data.corpuses)
+        DefaultService.listCorpuses().then((resp) => {
+            setCorpuses(resp.corpuses)
         }).catch(console.error)
     }, [])
 
     return (
-        <div>
+        <Layout>
             {corpuses.map((c) => <p key={c.id}>{c.title}</p>)}
-        </div>
+        </Layout>
     )
 }
 
