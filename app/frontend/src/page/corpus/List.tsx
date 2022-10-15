@@ -20,7 +20,7 @@ const List: FC = () => {
     return (
         <Layout>
             {corpuses.map((c) => (
-                <Button key={c.id} type="ghost" style={{ width: "100%" }}>
+                <Button key={c.id} style={{ width: "100%" }}>
                     <Link to={routePath(`/corpus/${c.id}`)}>{c.title}</Link>
                 </Button>
             ))}
