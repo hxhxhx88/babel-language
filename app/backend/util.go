@@ -4,6 +4,8 @@ import (
 	"babel/openapi/gen/babelapi"
 )
 
+const MaxPageSize = 50
+
 func normalizePagination(p *babelapi.Pagination) *babelapi.Pagination {
 	page := p.Page
 	if page < 0 {
@@ -14,8 +16,8 @@ func normalizePagination(p *babelapi.Pagination) *babelapi.Pagination {
 	if pageSize <= 0 {
 		pageSize = 1
 	}
-	if pageSize > 50 {
-		pageSize = 50
+	if pageSize > MaxPageSize {
+		pageSize = MaxPageSize
 	}
 
 	return &babelapi.Pagination{

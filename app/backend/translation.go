@@ -11,9 +11,9 @@ import (
 func (s *mServer) ListTranslationBlocks(ctx context.Context, request babelapi.ListTranslationBlocksRequestObject) (babelapi.ListTranslationBlocksResponseObject, error) {
 	tid := request.TranslationId
 	f := request.Body.Filter
-	p := normalizePagination(request.Body.Pagination)
+	p := normalizePagination(&request.Body.Pagination)
 
-	blocks, err := s.options.storageTranslation.ListBlocks(ctx, tid, f, p)
+	blocks, err := s.options.storageTranslation.ListBlocks(ctx, tid, &f, p)
 	if err != nil {
 		zap.L().Error(err.Error())
 		return nil, err
@@ -33,7 +33,7 @@ func (s *mServer) CountTranslationBlocks(ctx context.Context, request babelapi.C
 	tid := request.TranslationId
 	f := request.Body.Filter
 
-	n, err := s.options.storageTranslation.CountBlocks(ctx, tid, f)
+	n, err := s.options.storageTranslation.CountBlocks(ctx, tid, &f)
 	if err != nil {
 		zap.L().Error(err.Error())
 		return nil, err

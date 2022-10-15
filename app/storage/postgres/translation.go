@@ -68,8 +68,13 @@ func (s *mTranslation) CountBlocks(ctx context.Context, tid storage.TranslationI
 	filterClause, filterArgs := makeBlockFilterStatement(tid_, f)
 	query := fmt.Sprintf(`SELECT COUNT(*) FROM blocks AS b %s`, filterClause)
 
+	stmt, err := s.pg.PrepareNamedContext(ctx, query)
+	if err != nil {
+		return 0, errors.WithStack(err)
+	}
+
 	var n uint64
-	if err := s.pg.GetContext(ctx, &n, query, filterArgs); err != nil {
+	if err := stmt.GetContext(ctx, &n, filterArgs); err != nil {
 		return 0, errors.WithStack(err)
 	}
 

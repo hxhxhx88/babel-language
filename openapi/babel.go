@@ -185,7 +185,8 @@ func NewBabel() *openapi3.T {
 					},
 					RequestBody: &openapi3.RequestBodyRef{
 						Value: openapi3.NewRequestBody().WithJSONSchema(&openapi3.Schema{
-							Type: openapi3.TypeObject,
+							Type:     openapi3.TypeObject,
+							Required: []string{"pagination", "filter"},
 							Properties: openapi3.Schemas{
 								"pagination": &openapi3.SchemaRef{
 									Ref: "#/components/schemas/Pagination",
@@ -227,7 +228,8 @@ func NewBabel() *openapi3.T {
 					},
 					RequestBody: &openapi3.RequestBodyRef{
 						Value: openapi3.NewRequestBody().WithJSONSchema(&openapi3.Schema{
-							Type: openapi3.TypeObject,
+							Type:     openapi3.TypeObject,
+							Required: []string{"filter"},
 							Properties: openapi3.Schemas{
 								"filter": &openapi3.SchemaRef{
 									Ref: "#/components/schemas/BlockFilter",
