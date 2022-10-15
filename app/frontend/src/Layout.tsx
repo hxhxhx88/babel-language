@@ -7,13 +7,21 @@ const { Title } = Typography
 const { Content, Header } = Layout
 
 export interface Prop {
-    children?: React.ReactNode;
+    children?: React.ReactNode
 }
 
 const PageLayout: FC<Prop> = (props) => {
     return (
         <Layout style={{ height: "100vh" }}>
-            <Header style={{ display: "flex", flexDirection: "row", alignItems: "center", paddingRight: 16, paddingLeft: 16 }}>
+            <Header
+                style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingRight: 16,
+                    paddingLeft: 16,
+                }}
+            >
                 <Link to={routePath()}>
                     <Title style={{ color: "white", margin: 16 }}>Babel</Title>
                 </Link>

@@ -1,19 +1,24 @@
-version: '3'
+version: "3"
 
 tasks:
   start:
-    cmds: 
+    cmds:
       - npm start
     dir: app/frontend
 
   build:
-    cmds: 
+    cmds:
       - npm run build
     dir: app/frontend
 
   lint:
-    cmds: 
+    cmds:
       - npx eslint src
+    dir: app/frontend
+
+  format:
+    cmds:
+      - npx prettier --write src
     dir: app/frontend
 
   openapi:

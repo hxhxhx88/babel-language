@@ -3,7 +3,7 @@ import routePath from "route"
 
 import CorpusList from "page/corpus/List"
 
-function App (): JSX.Element {
+function App(): JSX.Element {
     return (
         <Router>
             <Routes>
