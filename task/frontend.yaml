@@ -18,5 +18,5 @@ tasks:
 
   openapi:
     cmds:
-      - npx openapi-typescript ../../openapi/gen/babel.json --make-paths-enum --immutable-types --output src/openapi/babel.ts
+      - npx openapi-typescript ../../openapi/gen/babel.json --immutable-types --output src/openapi/babel.ts
     dir: app/frontend

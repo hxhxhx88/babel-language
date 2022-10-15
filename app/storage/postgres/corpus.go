@@ -67,6 +67,28 @@ func (s *mCorpus) CreateTranslation(ctx context.Context, corpusId storage.IdType
 	return strconv.Itoa(ids[0]), nil
 }
 
+func (s *mCorpus) List(ctx context.Context) ([]babelapi.Corpus, error) {
+	var records []struct {
+		Id                      int    `db:"id"`
+		Title                   string `db:"title"`
+		OriginalLanguageIso6393 string `db:"original_language_iso_639_3"`
+	}
+	if err := s.pg.Select(&records, "SELECT id, title, original_language_iso_639_3 FROM corpuses ORDER BY title ASC"); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var corpuses []babelapi.Corpus
+	for _, rec := range records {
+		corpuses = append(corpuses, babelapi.Corpus{
+			Id:                      strconv.Itoa(rec.Id),
+			Title:                   rec.Title,
+			OriginalLanguageIso6393: rec.OriginalLanguageIso6393,
+		})
+	}
+
+	return corpuses, nil
+}
+
 const mParamLimit = 65535
 
 func txCreate(ctx context.Context, tx *sqlx.Tx, corpus *babelapi.CorpusDraft) (int, error) {
@@ -123,8 +145,7 @@ func txCreateTranslation(ctx context.Context, tx *sqlx.Tx, corpusId int, transla
 			vs = append(vs, corpusId, t.Title, t.LanguageIso6393)
 		}
 		if len(vs) > 0 {
-			query := `INSERT INTO translations (corpus_id, title, language_iso_639_3) VALUES ` + strings.Join(ps, ",")
-			query += " RETURNING id "
+			query := `INSERT INTO translations (corpus_id, title, language_iso_639_3) VALUES ` + strings.Join(ps, ",") + " RETURNING id "
 
 			rows, err := tx.QueryxContext(ctx, query, vs...)
 			if err != nil {

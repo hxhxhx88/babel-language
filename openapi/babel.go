@@ -41,6 +41,28 @@ func NewBabel() *openapi3.T {
 				},
 			},
 			"/corpuses": &openapi3.PathItem{
+				Get: &openapi3.Operation{
+					Summary:     "List corpuses",
+					OperationID: "ListCorpuses",
+					Responses: openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Value: openapi3.NewResponse().WithDescription("Success").WithJSONSchema(&openapi3.Schema{
+								Type:     openapi3.TypeObject,
+								Required: []string{"corpuses"},
+								Properties: openapi3.Schemas{
+									"corpuses": &openapi3.SchemaRef{
+										Value: &openapi3.Schema{
+											Type: openapi3.TypeArray,
+											Items: &openapi3.SchemaRef{
+												Ref: "#/components/schemas/Corpus",
+											},
+										},
+									},
+								},
+							}),
+						},
+					},
+				},
 				Post: &openapi3.Operation{
 					Summary:     "Create a corpus",
 					OperationID: "CreateCorpus",
@@ -124,6 +146,17 @@ func NewBabel() *openapi3.T {
 									},
 								},
 							},
+						},
+					},
+				},
+				"Corpus": &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type:     openapi3.TypeObject,
+						Required: []string{"id", "title", "original_language_iso_639_3"},
+						Properties: openapi3.Schemas{
+							"id":                          mIdField,
+							"title":                       mStringField,
+							"original_language_iso_639_3": mStringField,
 						},
 					},
 				},

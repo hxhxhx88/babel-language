@@ -29,3 +29,14 @@ func (s *mServer) CreateCorpusTranslation(ctx context.Context, request babelapi.
 		Id: id,
 	}, nil
 }
+
+func (s *mServer) ListCorpuses(ctx context.Context, request babelapi.ListCorpusesRequestObject) (babelapi.ListCorpusesResponseObject, error) {
+	corpuses, err := s.options.storageCorpus.List(ctx)
+	if err != nil {
+		zap.L().Error(err.Error())
+		return nil, err
+	}
+	return &babelapi.ListCorpuses200JSONResponse{
+		Corpuses: corpuses,
+	}, nil
+}
