@@ -96,12 +96,7 @@ func NewBabel() *openapi3.T {
 					OperationID: "GetCorpus",
 					Parameters: openapi3.Parameters{
 						&openapi3.ParameterRef{
-							Value: &openapi3.Parameter{
-								Name:     "corpusId",
-								In:       openapi3.ParameterInPath,
-								Required: true,
-								Schema:   mIdField,
-							},
+							Value: mCorpusIdParameter,
 						},
 					},
 					Responses: openapi3.Responses{
@@ -120,17 +115,39 @@ func NewBabel() *openapi3.T {
 				},
 			},
 			"/corpus/{corpusId}/translations": &openapi3.PathItem{
+				Get: &openapi3.Operation{
+					Summary:     "List corpus translations",
+					OperationID: "ListCorpusTranslations",
+					Parameters: openapi3.Parameters{
+						&openapi3.ParameterRef{
+							Value: mCorpusIdParameter,
+						},
+					},
+					Responses: openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Value: openapi3.NewResponse().WithDescription("Success").WithJSONSchema(&openapi3.Schema{
+								Type:     openapi3.TypeObject,
+								Required: []string{"translations"},
+								Properties: openapi3.Schemas{
+									"translations": &openapi3.SchemaRef{
+										Value: &openapi3.Schema{
+											Type: openapi3.TypeArray,
+											Items: &openapi3.SchemaRef{
+												Ref: "#/components/schemas/Translation",
+											},
+										},
+									},
+								},
+							}),
+						},
+					},
+				},
 				Post: &openapi3.Operation{
 					Summary:     "Create a translation for a corpus",
 					OperationID: "CreateCorpusTranslation",
 					Parameters: openapi3.Parameters{
 						&openapi3.ParameterRef{
-							Value: &openapi3.Parameter{
-								Name:     "corpusId",
-								In:       openapi3.ParameterInPath,
-								Required: true,
-								Schema:   mIdField,
-							},
+							Value: mCorpusIdParameter,
 						},
 					},
 					RequestBody: &openapi3.RequestBodyRef{
@@ -207,6 +224,18 @@ func NewBabel() *openapi3.T {
 						},
 					},
 				},
+				"Translation": &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type:     openapi3.TypeObject,
+						Required: []string{"id", "corpus_id", "language_iso_639_3", "title"},
+						Properties: openapi3.Schemas{
+							"id":                 mIdField,
+							"corpus_id":          mIdField,
+							"title":              mStringField,
+							"language_iso_639_3": mStringField,
+						},
+					},
+				},
 				"BlockDraft": &openapi3.SchemaRef{
 					Value: &openapi3.Schema{
 						Type:     openapi3.TypeObject,
@@ -239,4 +268,11 @@ var mIntField = &openapi3.SchemaRef{
 	Value: &openapi3.Schema{
 		Type: openapi3.TypeInteger,
 	},
+}
+
+var mCorpusIdParameter = &openapi3.Parameter{
+	Name:     "corpusId",
+	In:       openapi3.ParameterInPath,
+	Required: true,
+	Schema:   mIdField,
 }

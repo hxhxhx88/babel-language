@@ -19,17 +19,6 @@ func (s *mServer) CreateCorpus(ctx context.Context, request babelapi.CreateCorpu
 	}, nil
 }
 
-func (s *mServer) CreateCorpusTranslation(ctx context.Context, request babelapi.CreateCorpusTranslationRequestObject) (babelapi.CreateCorpusTranslationResponseObject, error) {
-	id, err := s.options.storageCorpus.CreateTranslation(ctx, request.CorpusId, &request.Body.Translation)
-	if err != nil {
-		zap.L().Error(err.Error())
-		return nil, err
-	}
-	return &babelapi.CreateCorpusTranslation200JSONResponse{
-		Id: id,
-	}, nil
-}
-
 func (s *mServer) ListCorpuses(ctx context.Context, request babelapi.ListCorpusesRequestObject) (babelapi.ListCorpusesResponseObject, error) {
 	corpuses, err := s.options.storageCorpus.List(ctx)
 	if err != nil {
@@ -53,5 +42,31 @@ func (s *mServer) GetCorpus(ctx context.Context, request babelapi.GetCorpusReque
 	}
 	return &babelapi.GetCorpus200JSONResponse{
 		Corpus: *corpus,
+	}, nil
+}
+
+func (s *mServer) CreateCorpusTranslation(ctx context.Context, request babelapi.CreateCorpusTranslationRequestObject) (babelapi.CreateCorpusTranslationResponseObject, error) {
+	id, err := s.options.storageCorpus.CreateTranslation(ctx, request.CorpusId, &request.Body.Translation)
+	if err != nil {
+		zap.L().Error(err.Error())
+		return nil, err
+	}
+	return &babelapi.CreateCorpusTranslation200JSONResponse{
+		Id: id,
+	}, nil
+}
+
+func (s *mServer) ListCorpusTranslations(ctx context.Context, request babelapi.ListCorpusTranslationsRequestObject) (babelapi.ListCorpusTranslationsResponseObject, error) {
+	translations, err := s.options.storageCorpus.ListTranslations(ctx, request.CorpusId)
+	if err != nil {
+		zap.L().Error(err.Error())
+		return nil, err
+	}
+	var ts []babelapi.Translation
+	for _, t := range translations {
+		ts = append(ts, *t)
+	}
+	return &babelapi.ListCorpusTranslations200JSONResponse{
+		Translations: ts,
 	}, nil
 }

@@ -43,30 +43,6 @@ func (s *mCorpus) Create(ctx context.Context, corpus *babelapi.CorpusDraft) (sto
 	return strconv.Itoa(id), nil
 }
 
-func (s *mCorpus) CreateTranslation(ctx context.Context, corpusId storage.IdType, translation *babelapi.TranslationDraft) (storage.IdType, error) {
-	cid, err := strconv.Atoi(corpusId)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-
-	tx, err := s.pg.BeginTxx(ctx, nil)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-
-	ids, err := txCreateTranslation(ctx, tx, cid, *translation)
-	if err != nil {
-		tx.Rollback()
-		return "", err
-	}
-
-	if err = tx.Commit(); err != nil {
-		return "", err
-	}
-
-	return strconv.Itoa(ids[0]), nil
-}
-
 func (s *mCorpus) List(ctx context.Context) ([]*babelapi.Corpus, error) {
 	var records []mCorpusRecord
 	if err := s.pg.Select(&records, "SELECT id, title, original_language_iso_639_3 FROM corpuses ORDER BY title ASC"); err != nil {
@@ -95,6 +71,49 @@ func (s *mCorpus) Get(ctx context.Context, corpusId storage.IdType) (*babelapi.C
 	return record.ToCorpus(), nil
 }
 
+func (s *mCorpus) CreateTranslation(ctx context.Context, corpusId storage.IdType, translation *babelapi.TranslationDraft) (storage.IdType, error) {
+	cid, err := strconv.Atoi(corpusId)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	tx, err := s.pg.BeginTxx(ctx, nil)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	ids, err := txCreateTranslation(ctx, tx, cid, *translation)
+	if err != nil {
+		tx.Rollback()
+		return "", err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return "", err
+	}
+
+	return strconv.Itoa(ids[0]), nil
+}
+
+func (s *mCorpus) ListTranslations(ctx context.Context, corpusId storage.IdType) ([]*babelapi.Translation, error) {
+	cid, err := strconv.Atoi(corpusId)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var records []mTranslationRecord
+	if err := s.pg.Select(&records, "SELECT id, corpus_id, title, language_iso_639_3 FROM translations WHERE corpus_id = $1", cid); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var translations []*babelapi.Translation
+	for _, rec := range records {
+		translations = append(translations, rec.ToTranslation())
+	}
+
+	return translations, nil
+}
+
 type mCorpusRecord struct {
 	Id                      int    `db:"id"`
 	Title                   string `db:"title"`
@@ -106,6 +125,22 @@ func (rec *mCorpusRecord) ToCorpus() *babelapi.Corpus {
 		Id:                      strconv.Itoa(rec.Id),
 		Title:                   rec.Title,
 		OriginalLanguageIso6393: rec.OriginalLanguageIso6393,
+	}
+}
+
+type mTranslationRecord struct {
+	Id              int    `db:"id"`
+	CorpusId        int    `db:"corpus_id"`
+	Title           string `db:"title"`
+	LanguageIso6393 string `db:"language_iso_639_3"`
+}
+
+func (rec *mTranslationRecord) ToTranslation() *babelapi.Translation {
+	return &babelapi.Translation{
+		Id:              strconv.Itoa(rec.Id),
+		CorpusId:        strconv.Itoa(rec.CorpusId),
+		Title:           rec.Title,
+		LanguageIso6393: rec.LanguageIso6393,
 	}
 }
 
