@@ -18,3 +18,14 @@ func (s *mServer) CreateCorpus(ctx context.Context, request babelapi.CreateCorpu
 		Id: id,
 	}, nil
 }
+
+func (s *mServer) CreateCorpusTranslation(ctx context.Context, request babelapi.CreateCorpusTranslationRequestObject) (babelapi.CreateCorpusTranslationResponseObject, error) {
+	id, err := s.options.storageCorpus.CreateTranslation(ctx, request.CorpusId, &request.Body.Translation)
+	if err != nil {
+		zap.L().Error(err.Error())
+		return nil, err
+	}
+	return &babelapi.CreateCorpusTranslation200JSONResponse{
+		Id: id,
+	}, nil
+}

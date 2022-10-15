@@ -9,5 +9,6 @@ import (
 type IdType = string
 
 type Corpus interface {
-	Create(context.Context, *babelapi.CorpusDraft) (IdType, error)
+	Create(ctx context.Context, corpus *babelapi.CorpusDraft) (IdType, error)
+	CreateTranslation(ctx context.Context, corpusId IdType, tranlation *babelapi.TranslationDraft) (IdType, error)
 }

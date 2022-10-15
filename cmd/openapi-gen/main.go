@@ -20,12 +20,12 @@ func main() {
 	babelapi := openapi.NewBabel()
 
 	data, err := babelapi.MarshalJSON()
-	mustOk(err)
+	must(err)
 
-	mustOk(os.WriteFile(*output, data, 0644))
+	must(os.WriteFile(*output, data, 0644))
 }
 
-func mustOk(err error) {
+func must(err error) {
 	if err != nil {
 		panic(err)
 	}

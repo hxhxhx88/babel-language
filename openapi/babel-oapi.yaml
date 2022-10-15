@@ -4,3 +4,4 @@ generate:
   strict-server: true
   embedded-spec: true
   models: true
+  client: true
