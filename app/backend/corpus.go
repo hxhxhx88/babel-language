@@ -3,9 +3,9 @@ package backend
 import (
 	"context"
 
-	"babel/openapi/gen/babelapi"
-
 	"go.uber.org/zap"
+
+	"babel/openapi/gen/babelapi"
 )
 
 func (s *mServer) CreateCorpus(ctx context.Context, request babelapi.CreateCorpusRequestObject) (babelapi.CreateCorpusResponseObject, error) {
@@ -36,7 +36,22 @@ func (s *mServer) ListCorpuses(ctx context.Context, request babelapi.ListCorpuse
 		zap.L().Error(err.Error())
 		return nil, err
 	}
+	var cs []babelapi.Corpus
+	for _, c := range corpuses {
+		cs = append(cs, *c)
+	}
 	return &babelapi.ListCorpuses200JSONResponse{
-		Corpuses: corpuses,
+		Corpuses: cs,
+	}, nil
+}
+
+func (s *mServer) GetCorpus(ctx context.Context, request babelapi.GetCorpusRequestObject) (babelapi.GetCorpusResponseObject, error) {
+	corpus, err := s.options.storageCorpus.Get(ctx, request.CorpusId)
+	if err != nil {
+		zap.L().Error(err.Error())
+		return nil, err
+	}
+	return &babelapi.GetCorpus200JSONResponse{
+		Corpus: *corpus,
 	}, nil
 }

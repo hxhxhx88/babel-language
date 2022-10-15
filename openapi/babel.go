@@ -90,6 +90,35 @@ func NewBabel() *openapi3.T {
 					},
 				},
 			},
+			"/corpus/{corpusId}": &openapi3.PathItem{
+				Get: &openapi3.Operation{
+					Summary:     "Get for a corpus",
+					OperationID: "GetCorpus",
+					Parameters: openapi3.Parameters{
+						&openapi3.ParameterRef{
+							Value: &openapi3.Parameter{
+								Name:     "corpusId",
+								In:       openapi3.ParameterInPath,
+								Required: true,
+								Schema:   mIdField,
+							},
+						},
+					},
+					Responses: openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Value: openapi3.NewResponse().WithDescription("Success").WithJSONSchema(&openapi3.Schema{
+								Type:     openapi3.TypeObject,
+								Required: []string{"corpus"},
+								Properties: openapi3.Schemas{
+									"corpus": &openapi3.SchemaRef{
+										Ref: "#/components/schemas/Corpus",
+									},
+								},
+							}),
+						},
+					},
+				},
+			},
 			"/corpus/{corpusId}/translations": &openapi3.PathItem{
 				Post: &openapi3.Operation{
 					Summary:     "Create a translation for a corpus",

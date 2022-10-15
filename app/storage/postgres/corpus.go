@@ -67,26 +67,46 @@ func (s *mCorpus) CreateTranslation(ctx context.Context, corpusId storage.IdType
 	return strconv.Itoa(ids[0]), nil
 }
 
-func (s *mCorpus) List(ctx context.Context) ([]babelapi.Corpus, error) {
-	var records []struct {
-		Id                      int    `db:"id"`
-		Title                   string `db:"title"`
-		OriginalLanguageIso6393 string `db:"original_language_iso_639_3"`
-	}
+func (s *mCorpus) List(ctx context.Context) ([]*babelapi.Corpus, error) {
+	var records []mCorpusRecord
 	if err := s.pg.Select(&records, "SELECT id, title, original_language_iso_639_3 FROM corpuses ORDER BY title ASC"); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	var corpuses []babelapi.Corpus
+	var corpuses []*babelapi.Corpus
 	for _, rec := range records {
-		corpuses = append(corpuses, babelapi.Corpus{
-			Id:                      strconv.Itoa(rec.Id),
-			Title:                   rec.Title,
-			OriginalLanguageIso6393: rec.OriginalLanguageIso6393,
-		})
+		corpuses = append(corpuses, rec.ToCorpus())
 	}
 
 	return corpuses, nil
+}
+
+func (s *mCorpus) Get(ctx context.Context, corpusId storage.IdType) (*babelapi.Corpus, error) {
+	cid, err := strconv.Atoi(corpusId)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var record mCorpusRecord
+	if err := s.pg.Get(&record, "SELECT id, title, original_language_iso_639_3 FROM corpuses WHERE id = $1", cid); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return record.ToCorpus(), nil
+}
+
+type mCorpusRecord struct {
+	Id                      int    `db:"id"`
+	Title                   string `db:"title"`
+	OriginalLanguageIso6393 string `db:"original_language_iso_639_3"`
+}
+
+func (rec *mCorpusRecord) ToCorpus() *babelapi.Corpus {
+	return &babelapi.Corpus{
+		Id:                      strconv.Itoa(rec.Id),
+		Title:                   rec.Title,
+		OriginalLanguageIso6393: rec.OriginalLanguageIso6393,
+	}
 }
 
 const mParamLimit = 65535

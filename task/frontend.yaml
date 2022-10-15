@@ -23,5 +23,6 @@ tasks:
 
   openapi:
     cmds:
+      - rm -rf src/openapi/babel
       - npx openapi-typescript-codegen --input ../../openapi/gen/babel.json --output src/openapi/babel
     dir: app/frontend
