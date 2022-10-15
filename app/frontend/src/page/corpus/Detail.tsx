@@ -40,11 +40,7 @@ const CorpusDetail: FC<Props> = (props) => {
                 showSearch
                 style={{ width: "100%", marginTop: 16 }}
                 optionFilterProp="children"
-                filterOption={(input, option) =>
-                    (option?.children as unknown as string)
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                }
+                filterOption={(input, option) => (option?.children as unknown as string).toLowerCase().includes(input.toLowerCase())}
                 placeholder={
                     <TransformedText transform="capitalize-first">
                         <FormattedMessage id="select_translation_prompt" />
@@ -65,25 +61,17 @@ const Detail: FC = () => {
     const { corpusId = "" } = useParams()
 
     const [corpus, setCorpus] = useState<Corpus | undefined>(undefined)
-    const [translations, setTranslations] = useState<Translation[] | undefined>(
-        undefined
-    )
+    const [translations, setTranslations] = useState<Translation[] | undefined>(undefined)
     useEffect(() => {
-        DefaultService.getCorpus(corpusId).then(({ corpus }) => {
-            setCorpus(corpus)
-        })
-        DefaultService.listCorpusTranslations(corpusId).then(
-            ({ translations }) => {
-                setTranslations(translations)
-            }
-        )
+        DefaultService.getCorpus(corpusId)
+            .then(({ corpus }) => setCorpus(corpus))
+            .catch(console.error)
+        DefaultService.listCorpusTranslations(corpusId)
+            .then(({ translations }) => setTranslations(translations))
+            .catch(console.error)
     }, [])
 
-    return corpus && translations ? (
-        <CorpusDetail corpus={corpus} translations={translations} />
-    ) : (
-        <PageSpin />
-    )
+    return corpus && translations ? <CorpusDetail corpus={corpus} translations={translations} /> : <PageSpin />
 }
 
 export default Detail

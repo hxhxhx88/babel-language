@@ -7,9 +7,7 @@ import "./index.css"
 import "antd/dist/antd.min.css"
 
 import(`locale/${process.env.REACT_APP_LANG}.json`).then((lang) => {
-    const root = ReactDOM.createRoot(
-        document.getElementById("root") as HTMLElement
-    )
+    const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
     root.render(
         <React.StrictMode>
             <IntlProvider locale="en-GB" messages={lang}>

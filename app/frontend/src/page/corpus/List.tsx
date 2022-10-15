@@ -11,9 +11,7 @@ const List: FC = () => {
 
     useEffect(() => {
         DefaultService.listCorpuses()
-            .then(({ corpuses }) => {
-                setCorpuses(corpuses)
-            })
+            .then(({ corpuses }) => setCorpuses(corpuses))
             .catch(console.error)
     }, [])
 

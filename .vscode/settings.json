@@ -13,5 +13,5 @@
     "[typescriptreact]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
-    "editor.rulers": [80]
+    "editor.rulers": [180]
 }

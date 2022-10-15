@@ -12,10 +12,7 @@ function App(): JSX.Element {
                 <Route path={process.env.PUBLIC_URL} element={<CorpusList />} />
                 <Route path={routePath()} element={<CorpusList />} />
                 <Route path={routePath("/corpuses")} element={<CorpusList />} />
-                <Route
-                    path={routePath("/corpus/:corpusId")}
-                    element={<CorpusDetail />}
-                />
+                <Route path={routePath("/corpus/:corpusId")} element={<CorpusDetail />} />
             </Routes>
         </Router>
     )
