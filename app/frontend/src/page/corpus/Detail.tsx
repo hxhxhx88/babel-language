@@ -13,19 +13,11 @@ const { Option } = Select
 
 export interface Props {
     corpus: Corpus
+    translations: Translation[]
 }
 
 const CorpusDetail: FC<Props> = (props) => {
-    const { corpus } = props
-
-    const [translations, setTranslations] = useState<Translation[]>([])
-    useEffect(() => {
-        DefaultService.listCorpusTranslations(corpus.id).then(
-            ({ translations }) => {
-                setTranslations(translations)
-            }
-        )
-    }, [])
+    const { corpus, translations } = props
 
     return (
         <Layout>
@@ -39,16 +31,16 @@ const CorpusDetail: FC<Props> = (props) => {
             </Breadcrumb>
 
             <Select
-                mode="multiple"
-                allowClear={true}
                 showArrow={true}
                 style={{ width: "100%", marginTop: 16 }}
                 placeholder={
-                    <FormattedMessage id="select_corpus_translation_placeholder" />
+                    <FormattedMessage id="select_translation_prompt" />
                 }
             >
                 {translations.map((t) => (
-                    <Option key={t.id}>{t.title}</Option>
+                    <Option key={t.id} value={t.id}>
+                        {t.title}
+                    </Option>
                 ))}
             </Select>
         </Layout>
@@ -65,7 +57,22 @@ const Detail: FC = () => {
         })
     }, [])
 
-    return corpus ? <CorpusDetail corpus={corpus} /> : <PageSpin />
+    const [translations, setTranslations] = useState<Translation[] | undefined>(
+        undefined
+    )
+    useEffect(() => {
+        DefaultService.listCorpusTranslations(corpusId).then(
+            ({ translations }) => {
+                setTranslations(translations)
+            }
+        )
+    }, [])
+
+    return corpus && translations ? (
+        <CorpusDetail corpus={corpus} translations={translations} />
+    ) : (
+        <PageSpin />
+    )
 }
 
 export default Detail

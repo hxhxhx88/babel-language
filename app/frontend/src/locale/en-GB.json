@@ -1,4 +1,6 @@
 {
-    "corpus_list": "Corpus List",
-    "select_corpus_translation_placeholder": "Please select some translations"
+    "corpus_list": "corpus list",
+    "select_translation_prompt": "please select a translation",
+    "error": "error",
+    "error_no_translations": "missing translations"
 }

@@ -1,7 +1,7 @@
 import { FC } from "react"
 import { Spin } from "antd"
 
-const Detail: FC = () => {
+const PageSpin: FC = () => {
     return (
         <div
             style={{
@@ -17,4 +17,4 @@ const Detail: FC = () => {
     )
 }
 
-export default Detail
+export default PageSpin
