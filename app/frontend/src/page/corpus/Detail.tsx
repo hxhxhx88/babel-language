@@ -8,6 +8,7 @@ import { FormattedMessage } from "react-intl"
 import routePath from "route"
 import Layout from "Layout"
 import PageSpin from "component/PageSpin"
+import TransformedText from "component/TransformedText"
 
 const { Option } = Select
 
@@ -24,7 +25,9 @@ const CorpusDetail: FC<Props> = (props) => {
             <Breadcrumb>
                 <Breadcrumb.Item>
                     <Link to={routePath(`/corpuses`)}>
-                        <FormattedMessage id="corpus_list" />
+                        <TransformedText transform="capitalize">
+                            <FormattedMessage id="corpus_list" />
+                        </TransformedText>
                     </Link>
                 </Breadcrumb.Item>
                 <Breadcrumb.Item>{corpus.title}</Breadcrumb.Item>
@@ -34,7 +37,9 @@ const CorpusDetail: FC<Props> = (props) => {
                 showArrow={true}
                 style={{ width: "100%", marginTop: 16 }}
                 placeholder={
-                    <FormattedMessage id="select_translation_prompt" />
+                    <TransformedText transform="capitalize-first">
+                        <FormattedMessage id="select_translation_prompt" />
+                    </TransformedText>
                 }
             >
                 {translations.map((t) => (

@@ -1,47 +1,48 @@
 {
-  "name": "babel",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@types/node": "^16.11.65",
-    "@types/react": "^18.0.21",
-    "@types/react-dom": "^18.0.6",
-    "antd": "^4.23.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-intl": "^6.2.0",
-    "react-router-dom": "^6.4.2",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.8.4"
-  },
-  "scripts": {
-    "start": "DISABLE_ESLINT_PLUGIN=true react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "proxy": "http://localhost:12346",
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.40.0",
-    "@typescript-eslint/parser": "^5.40.0",
-    "eslint": "^8.25.0",
-    "eslint-plugin-react": "^7.31.10",
-    "openapi-typescript-codegen": "^0.23.0",
-    "prettier": "2.7.1"
-  }
+    "name": "babel",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {
+        "@emotion/react": "^11.10.4",
+        "@types/node": "^16.11.65",
+        "@types/react": "^18.0.21",
+        "@types/react-dom": "^18.0.6",
+        "antd": "^4.23.5",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-intl": "^6.2.0",
+        "react-router-dom": "^6.4.2",
+        "react-scripts": "5.0.1",
+        "typescript": "^4.8.4"
+    },
+    "scripts": {
+        "start": "DISABLE_ESLINT_PLUGIN=true react-scripts start",
+        "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build"
+    },
+    "eslintConfig": {
+        "extends": [
+            "react-app"
+        ]
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "proxy": "http://localhost:12346",
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^5.40.0",
+        "@typescript-eslint/parser": "^5.40.0",
+        "eslint": "^8.25.0",
+        "eslint-plugin-react": "^7.31.10",
+        "openapi-typescript-codegen": "^0.23.0",
+        "prettier": "2.7.1"
+    }
 }
