@@ -118,12 +118,12 @@ func txCreateTranslation(ctx context.Context, tx *sqlx.Tx, corpusId int, transla
 		var vs []any
 		var ps []string
 		for _, t := range translations {
-			p := fmt.Sprintf("($%d, $%d)", len(vs)+1, len(vs)+2)
+			p := fmt.Sprintf("($%d, $%d, $%d)", len(vs)+1, len(vs)+2, len(vs)+3)
 			ps = append(ps, p)
-			vs = append(vs, corpusId, t.LanguageIso6393)
+			vs = append(vs, corpusId, t.Title, t.LanguageIso6393)
 		}
 		if len(vs) > 0 {
-			query := `INSERT INTO translations (corpus_id, language_iso_639_3) VALUES ` + strings.Join(ps, ",")
+			query := `INSERT INTO translations (corpus_id, title, language_iso_639_3) VALUES ` + strings.Join(ps, ",")
 			query += " RETURNING id "
 
 			rows, err := tx.QueryxContext(ctx, query, vs...)

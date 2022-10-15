@@ -37,6 +37,12 @@ func main() {
 				Required: true,
 			},
 			&cli.StringFlag{
+				Name:     "title",
+				Aliases:  []string{"t"},
+				Usage:    "title of the translation",
+				Required: true,
+			},
+			&cli.StringFlag{
 				Name:     "server",
 				Aliases:  []string{"s"},
 				Usage:    "address to the babel server",
@@ -89,6 +95,7 @@ func run(ctx *cli.Context) error {
 	}
 
 	tranlation := &babelapi.TranslationDraft{
+		Title:           ctx.String("title"),
 		LanguageIso6393: ctx.String("lang"),
 		Blocks:          &blocks,
 	}

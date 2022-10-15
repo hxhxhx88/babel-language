@@ -130,8 +130,9 @@ func NewBabel() *openapi3.T {
 				"TranslationDraft": &openapi3.SchemaRef{
 					Value: &openapi3.Schema{
 						Type:     openapi3.TypeObject,
-						Required: []string{"language_iso_639_3"},
+						Required: []string{"language_iso_639_3", "title"},
 						Properties: openapi3.Schemas{
+							"title":              mStringField,
 							"language_iso_639_3": mStringField,
 							"blocks": &openapi3.SchemaRef{
 								Value: &openapi3.Schema{
