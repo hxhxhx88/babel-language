@@ -1,7 +1,7 @@
 import { FC, useState, useEffect, useMemo, HTMLAttributes } from "react"
 import { useParams } from "react-router-dom"
-import { DefaultService, Corpus, Translation } from "openapi/babel"
-import { Switch, Space, Drawer, Alert, Breadcrumb, Button, PageHeader, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
+import { DefaultService, Corpus, Translation, Block } from "openapi/babel"
+import { Card, Switch, Space, Drawer, Alert, Breadcrumb, Button, PageHeader, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
 import { SettingOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons"
 import { Link } from "react-router-dom"
 import { Set as ImmutableSet, Map as ImmutableMap } from "immutable"
@@ -30,20 +30,39 @@ const CorpusDetail: FC<Props> = (props) => {
     const [selected, setSelected] = useState<Translation["id"][]>([])
     const [reference, setReference] = useState<Translation["id"] | undefined>(undefined)
     const [isCountTranslationBlocks, setIsCountTranslationBlocks] = useState<boolean>(false)
-    const [totalCount, setTotalCount] = useState<number | undefined>(undefined)
-    const [page, setPage] = useState<number>(0)
+    const [totalCount, setTotalCount] = useState<number>(0)
+    const [page, setPage] = useState<number | undefined>(undefined)
     useEffect(() => {
         if (!reference) return
 
         setIsCountTranslationBlocks(true)
         DefaultService.countTranslationBlocks(reference)
             .then(({ total_count }) => {
-                setPage(0)
                 setTotalCount(total_count)
+                if (total_count > 0) {
+                    setPage(0)
+                }
             })
             .catch(console.error)
             .finally(() => setIsCountTranslationBlocks(false))
     }, [reference])
+
+    const [blocks, setBlocks] = useState<Block[]>([])
+    const [isListTranslationBlocks, setIsListTranslationBlocks] = useState<boolean>(false)
+    useEffect(() => {
+        if (!reference || page === undefined) return
+
+        setIsListTranslationBlocks(true)
+        DefaultService.searchTranslationBlocks(reference, {
+            filter: {},
+            pagination: { page, page_size: PAGE_SIZE },
+        })
+            .then(({ blocks }) => {
+                setBlocks(blocks)
+            })
+            .catch(console.error)
+            .finally(() => setIsListTranslationBlocks(false))
+    }, [page])
 
     return (
         <Layout>
@@ -80,11 +99,15 @@ const CorpusDetail: FC<Props> = (props) => {
                 </PageHeader>
             </Spin>
 
-            {(totalCount ?? 0) > 0 && (
+            {totalCount > 0 && (
                 <div style={{ marginTop: 16, display: "flex", flexDirection: "row", justifyContent: "flex-end" }}>
-                    <Pagination min={0} max={Math.ceil((totalCount ?? 0) / PAGE_SIZE) - 1} onConfirm={setPage} />
+                    <Pagination min={0} max={Math.ceil(totalCount / PAGE_SIZE) - 1} onConfirm={setPage} />
                 </div>
             )}
+
+            {blocks.map((block) => (
+                <div key={block.id}>{block.content}</div>
+            ))}
 
             {isSelectFormVisible !== undefined && (
                 <SelectTranslationDrawer

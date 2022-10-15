@@ -23,7 +23,7 @@ type mTranslation struct {
 	pg *sqlx.DB
 }
 
-func (s *mTranslation) ListBlocks(ctx context.Context, tid storage.TranslationId, f *babelapi.BlockFilter, p *babelapi.Pagination) ([]*babelapi.Block, error) {
+func (s *mTranslation) SearchBlocks(ctx context.Context, tid storage.TranslationId, f *babelapi.BlockFilter, p *babelapi.Pagination) ([]*babelapi.Block, error) {
 	tid_, err := strconv.Atoi(tid)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -46,8 +46,13 @@ func (s *mTranslation) ListBlocks(ctx context.Context, tid storage.TranslationId
 		OFFSET %d
 	`, filterClause, limit, offset)
 
+	stmt, err := s.pg.PrepareNamedContext(ctx, query)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
 	var records []mBlockRecord
-	if err := s.pg.SelectContext(ctx, &records, query, filterArgs); err != nil {
+	if err := stmt.SelectContext(ctx, &records, filterArgs); err != nil {
 		return nil, errors.WithStack(err)
 	}
 

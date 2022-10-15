@@ -20,6 +20,6 @@ type Corpus interface {
 }
 
 type Translation interface {
-	ListBlocks(context.Context, TranslationId, *babelapi.BlockFilter, *babelapi.Pagination) ([]*babelapi.Block, error)
+	SearchBlocks(context.Context, TranslationId, *babelapi.BlockFilter, *babelapi.Pagination) ([]*babelapi.Block, error)
 	CountBlocks(context.Context, TranslationId, *babelapi.BlockFilter) (uint64, error)
 }

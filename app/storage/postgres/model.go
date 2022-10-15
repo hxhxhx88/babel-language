@@ -37,7 +37,7 @@ func (rec *mTranslationRecord) ToOpenApi() *babelapi.Translation {
 
 type mBlockRecord struct {
 	Id            int    `db:"id"`
-	TranslationId int    `db:"corpus_id"`
+	TranslationId int    `db:"translation_id"`
 	Content       string `db:"content"`
 	Rank          int    `db:"rank"`
 	Uuid          string `db:"uuid"`

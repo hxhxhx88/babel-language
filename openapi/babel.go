@@ -174,10 +174,10 @@ func NewBabel() *openapi3.T {
 					},
 				},
 			},
-			"/translation/{translationId}/blocks": &openapi3.PathItem{
-				Get: &openapi3.Operation{
-					Summary:     "List translation blocks",
-					OperationID: "ListTranslationBlocks",
+			"/translation/{translationId}/blocks:search": &openapi3.PathItem{
+				Post: &openapi3.Operation{
+					Summary:     "Search translation blocks",
+					OperationID: "SearchTranslationBlocks",
 					Parameters: openapi3.Parameters{
 						&openapi3.ParameterRef{
 							Value: mTranslationIdParameter,

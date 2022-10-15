@@ -8,12 +8,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func (s *mServer) ListTranslationBlocks(ctx context.Context, request babelapi.ListTranslationBlocksRequestObject) (babelapi.ListTranslationBlocksResponseObject, error) {
+func (s *mServer) SearchTranslationBlocks(ctx context.Context, request babelapi.SearchTranslationBlocksRequestObject) (babelapi.SearchTranslationBlocksResponseObject, error) {
 	tid := request.TranslationId
 	f := request.Body.Filter
 	p := normalizePagination(&request.Body.Pagination)
 
-	blocks, err := s.options.storageTranslation.ListBlocks(ctx, tid, &f, p)
+	blocks, err := s.options.storageTranslation.SearchBlocks(ctx, tid, &f, p)
 	if err != nil {
 		zap.L().Error(err.Error())
 		return nil, err
@@ -24,7 +24,7 @@ func (s *mServer) ListTranslationBlocks(ctx context.Context, request babelapi.Li
 		bs = append(bs, *b)
 	}
 
-	return &babelapi.ListTranslationBlocks200JSONResponse{
+	return &babelapi.SearchTranslationBlocks200JSONResponse{
 		Blocks: bs,
 	}, nil
 }
