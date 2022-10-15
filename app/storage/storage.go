@@ -6,13 +6,20 @@ import (
 	"babel/openapi/gen/babelapi"
 )
 
-type IdType = string
+type idType = string
+type CorpusId = idType
+type TranslationId = idType
 
 type Corpus interface {
-	Create(ctx context.Context, corpus *babelapi.CorpusDraft) (IdType, error)
-	List(ctx context.Context) ([]*babelapi.Corpus, error)
-	Get(ctx context.Context, corpusId IdType) (*babelapi.Corpus, error)
+	Create(context.Context, *babelapi.CorpusDraft) (CorpusId, error)
+	List(context.Context) ([]*babelapi.Corpus, error)
+	Get(context.Context, CorpusId) (*babelapi.Corpus, error)
 
-	CreateTranslation(ctx context.Context, corpusId IdType, tranlation *babelapi.TranslationDraft) (IdType, error)
-	ListTranslations(ctx context.Context, corpusId IdType) ([]*babelapi.Translation, error)
+	CreateTranslation(context.Context, CorpusId, *babelapi.TranslationDraft) (TranslationId, error)
+	ListTranslations(context.Context, CorpusId) ([]*babelapi.Translation, error)
+}
+
+type Translation interface {
+	ListBlocks(context.Context, TranslationId, *babelapi.BlockFilter, *babelapi.Pagination) ([]*babelapi.Block, error)
+	CountBlocks(context.Context, TranslationId, *babelapi.BlockFilter) (uint64, error)
 }

@@ -174,9 +174,93 @@ func NewBabel() *openapi3.T {
 					},
 				},
 			},
+			"/translation/{translationId}/blocks": &openapi3.PathItem{
+				Get: &openapi3.Operation{
+					Summary:     "List translation blocks",
+					OperationID: "ListTranslationBlocks",
+					Parameters: openapi3.Parameters{
+						&openapi3.ParameterRef{
+							Value: mTranslationIdParameter,
+						},
+					},
+					RequestBody: &openapi3.RequestBodyRef{
+						Value: openapi3.NewRequestBody().WithJSONSchema(&openapi3.Schema{
+							Type: openapi3.TypeObject,
+							Properties: openapi3.Schemas{
+								"pagination": &openapi3.SchemaRef{
+									Ref: "#/components/schemas/Pagination",
+								},
+								"filter": &openapi3.SchemaRef{
+									Ref: "#/components/schemas/BlockFilter",
+								},
+							},
+						}),
+					},
+					Responses: openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Value: openapi3.NewResponse().WithDescription("Success").WithJSONSchema(&openapi3.Schema{
+								Type:     openapi3.TypeObject,
+								Required: []string{"blocks"},
+								Properties: openapi3.Schemas{
+									"blocks": &openapi3.SchemaRef{
+										Value: &openapi3.Schema{
+											Type: openapi3.TypeArray,
+											Items: &openapi3.SchemaRef{
+												Ref: "#/components/schemas/Block",
+											},
+										},
+									},
+								},
+							}),
+						},
+					},
+				},
+			},
+			"/translation/{translationId}/blocks:count": &openapi3.PathItem{
+				Get: &openapi3.Operation{
+					Summary:     "Count translation blocks",
+					OperationID: "CountTranslationBlocks",
+					Parameters: openapi3.Parameters{
+						&openapi3.ParameterRef{
+							Value: mTranslationIdParameter,
+						},
+					},
+					RequestBody: &openapi3.RequestBodyRef{
+						Value: openapi3.NewRequestBody().WithJSONSchema(&openapi3.Schema{
+							Type: openapi3.TypeObject,
+							Properties: openapi3.Schemas{
+								"filter": &openapi3.SchemaRef{
+									Ref: "#/components/schemas/BlockFilter",
+								},
+							},
+						}),
+					},
+					Responses: openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Value: openapi3.NewResponse().WithDescription("Success").WithJSONSchema(&openapi3.Schema{
+								Type:     openapi3.TypeObject,
+								Required: []string{"total_count"},
+								Properties: openapi3.Schemas{
+									"total_count": mIntField,
+								},
+							}),
+						},
+					},
+				},
+			},
 		},
 		Components: openapi3.Components{
 			Schemas: openapi3.Schemas{
+				"Pagination": &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type:     openapi3.TypeObject,
+						Required: []string{"page", "page_size"},
+						Properties: openapi3.Schemas{
+							"page":      mIntField,
+							"page_size": mIntField,
+						},
+					},
+				},
 				"CorpusDraft": &openapi3.SchemaRef{
 					Value: &openapi3.Schema{
 						Type:     openapi3.TypeObject,
@@ -247,14 +331,42 @@ func NewBabel() *openapi3.T {
 						},
 					},
 				},
+				"Block": &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type:     openapi3.TypeObject,
+						Required: []string{"id", "translation_id", "content", "rank", "uuid"},
+						Properties: openapi3.Schemas{
+							"id":             mIdField,
+							"translation_id": mIdField,
+							"content":        mStringField,
+							"rank":           mIntField,
+							"uuid":           mStringField,
+						},
+					},
+				},
+				"BlockFilter": &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type: openapi3.TypeObject,
+						Properties: openapi3.Schemas{
+							"parent_block_id": &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									Type:        mIdType,
+									Description: "If provided, all sub-blocks, i.e. thoese blocks whose uuid has this block's uuid as prefix, at next rank will be returned, otherwise returns top-level blocks.",
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
 }
 
+const mIdType = openapi3.TypeString
+
 var mIdField = &openapi3.SchemaRef{
 	Value: &openapi3.Schema{
-		Type: openapi3.TypeString,
+		Type: mIdType,
 	},
 }
 
@@ -272,6 +384,13 @@ var mIntField = &openapi3.SchemaRef{
 
 var mCorpusIdParameter = &openapi3.Parameter{
 	Name:     "corpusId",
+	In:       openapi3.ParameterInPath,
+	Required: true,
+	Schema:   mIdField,
+}
+
+var mTranslationIdParameter = &openapi3.Parameter{
+	Name:     "translationId",
 	In:       openapi3.ParameterInPath,
 	Required: true,
 	Schema:   mIdField,

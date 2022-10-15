@@ -24,7 +24,7 @@ type mCorpus struct {
 	pg *sqlx.DB
 }
 
-func (s *mCorpus) Create(ctx context.Context, corpus *babelapi.CorpusDraft) (storage.IdType, error) {
+func (s *mCorpus) Create(ctx context.Context, corpus *babelapi.CorpusDraft) (storage.CorpusId, error) {
 	tx, err := s.pg.BeginTxx(ctx, nil)
 	if err != nil {
 		return "", errors.WithStack(err)
@@ -45,33 +45,33 @@ func (s *mCorpus) Create(ctx context.Context, corpus *babelapi.CorpusDraft) (sto
 
 func (s *mCorpus) List(ctx context.Context) ([]*babelapi.Corpus, error) {
 	var records []mCorpusRecord
-	if err := s.pg.Select(&records, "SELECT id, title, original_language_iso_639_3 FROM corpuses ORDER BY title ASC"); err != nil {
+	if err := s.pg.SelectContext(ctx, &records, "SELECT id, title, original_language_iso_639_3 FROM corpuses ORDER BY title ASC"); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	var corpuses []*babelapi.Corpus
 	for _, rec := range records {
-		corpuses = append(corpuses, rec.ToCorpus())
+		corpuses = append(corpuses, rec.ToOpenApi())
 	}
 
 	return corpuses, nil
 }
 
-func (s *mCorpus) Get(ctx context.Context, corpusId storage.IdType) (*babelapi.Corpus, error) {
+func (s *mCorpus) Get(ctx context.Context, corpusId storage.CorpusId) (*babelapi.Corpus, error) {
 	cid, err := strconv.Atoi(corpusId)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	var record mCorpusRecord
-	if err := s.pg.Get(&record, "SELECT id, title, original_language_iso_639_3 FROM corpuses WHERE id = $1", cid); err != nil {
+	if err := s.pg.GetContext(ctx, &record, "SELECT id, title, original_language_iso_639_3 FROM corpuses WHERE id = $1", cid); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	return record.ToCorpus(), nil
+	return record.ToOpenApi(), nil
 }
 
-func (s *mCorpus) CreateTranslation(ctx context.Context, corpusId storage.IdType, translation *babelapi.TranslationDraft) (storage.IdType, error) {
+func (s *mCorpus) CreateTranslation(ctx context.Context, corpusId storage.CorpusId, translation *babelapi.TranslationDraft) (storage.CorpusId, error) {
 	cid, err := strconv.Atoi(corpusId)
 	if err != nil {
 		return "", errors.WithStack(err)
@@ -95,53 +95,23 @@ func (s *mCorpus) CreateTranslation(ctx context.Context, corpusId storage.IdType
 	return strconv.Itoa(ids[0]), nil
 }
 
-func (s *mCorpus) ListTranslations(ctx context.Context, corpusId storage.IdType) ([]*babelapi.Translation, error) {
+func (s *mCorpus) ListTranslations(ctx context.Context, corpusId storage.CorpusId) ([]*babelapi.Translation, error) {
 	cid, err := strconv.Atoi(corpusId)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	var records []mTranslationRecord
-	if err := s.pg.Select(&records, "SELECT id, corpus_id, title, language_iso_639_3 FROM translations WHERE corpus_id = $1", cid); err != nil {
+	if err := s.pg.SelectContext(ctx, &records, "SELECT id, corpus_id, title, language_iso_639_3 FROM translations WHERE corpus_id = $1", cid); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	var translations []*babelapi.Translation
 	for _, rec := range records {
-		translations = append(translations, rec.ToTranslation())
+		translations = append(translations, rec.ToOpenApi())
 	}
 
 	return translations, nil
-}
-
-type mCorpusRecord struct {
-	Id                      int    `db:"id"`
-	Title                   string `db:"title"`
-	OriginalLanguageIso6393 string `db:"original_language_iso_639_3"`
-}
-
-func (rec *mCorpusRecord) ToCorpus() *babelapi.Corpus {
-	return &babelapi.Corpus{
-		Id:                      strconv.Itoa(rec.Id),
-		Title:                   rec.Title,
-		OriginalLanguageIso6393: rec.OriginalLanguageIso6393,
-	}
-}
-
-type mTranslationRecord struct {
-	Id              int    `db:"id"`
-	CorpusId        int    `db:"corpus_id"`
-	Title           string `db:"title"`
-	LanguageIso6393 string `db:"language_iso_639_3"`
-}
-
-func (rec *mTranslationRecord) ToTranslation() *babelapi.Translation {
-	return &babelapi.Translation{
-		Id:              strconv.Itoa(rec.Id),
-		CorpusId:        strconv.Itoa(rec.CorpusId),
-		Title:           rec.Title,
-		LanguageIso6393: rec.LanguageIso6393,
-	}
 }
 
 const mParamLimit = 65535

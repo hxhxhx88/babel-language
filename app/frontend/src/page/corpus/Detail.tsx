@@ -1,16 +1,15 @@
 import { FC, useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { DefaultService, Corpus, Translation } from "openapi/babel"
-import { Breadcrumb, Select } from "antd"
+import { Switch, Space, Drawer, Alert, Breadcrumb, Button, PageHeader, DrawerProps, List } from "antd"
+import { SettingOutlined } from "@ant-design/icons"
 import { Link } from "react-router-dom"
-import { FormattedMessage } from "react-intl"
+import { Set as ImmutableSet } from "immutable"
 
 import routePath from "route"
 import Layout from "Layout"
 import PageSpin from "component/PageSpin"
-import TransformedText from "component/TransformedText"
-
-const { Option } = Select
+import { I18nText } from "component/Text"
 
 export interface Props {
     corpus: Corpus
@@ -20,39 +19,55 @@ export interface Props {
 const CorpusDetail: FC<Props> = (props) => {
     const { corpus, translations } = props
 
+    const [isSelectFormVisible, setIsSelectFormVisible] = useState<boolean | undefined>(undefined)
+    const [selected, setSelected] = useState<Translation["id"][]>([])
+
     return (
         <Layout>
-            <Breadcrumb>
-                <Breadcrumb.Item>
-                    <Link to={routePath(`/corpuses`)}>
-                        <TransformedText transform="capitalize">
-                            <FormattedMessage id="corpus_list" />
-                        </TransformedText>
-                    </Link>
-                </Breadcrumb.Item>
-                <Breadcrumb.Item>{corpus.title}</Breadcrumb.Item>
-            </Breadcrumb>
-
-            <Select
-                mode="multiple"
-                allowClear
-                showArrow
-                showSearch
-                style={{ width: "100%", marginTop: 16 }}
-                optionFilterProp="children"
-                filterOption={(input, option) => (option?.children as unknown as string).toLowerCase().includes(input.toLowerCase())}
-                placeholder={
-                    <TransformedText transform="capitalize-first">
-                        <FormattedMessage id="select_translation_prompt" />
-                    </TransformedText>
+            <PageHeader
+                ghost={false}
+                breadcrumb={
+                    <Breadcrumb>
+                        <Breadcrumb.Item>
+                            <Link to={routePath(`/corpuses`)}>
+                                <I18nText id="corpus_list" transform="capitalize" />
+                            </Link>
+                        </Breadcrumb.Item>
+                        <Breadcrumb.Item>{corpus.title}</Breadcrumb.Item>
+                    </Breadcrumb>
                 }
+                extra={[<Button icon={<SettingOutlined />} key="setting" onClick={() => setIsSelectFormVisible(true)} />]}
+                title={corpus.title}
             >
-                {translations.map((t) => (
-                    <Option key={t.id} value={t.id}>
-                        {t.title}
-                    </Option>
-                ))}
-            </Select>
+                {selected.length > 0 ? (
+                    <>
+                        <I18nText id="selected_versions" transform="capitalize" />
+                        <ul style={{ marginBottom: 0 }}>
+                            {translations.map((t) => (
+                                <li key={t.id}>{t.title}</li>
+                            ))}
+                        </ul>
+                    </>
+                ) : (
+                    <Alert type="warning" showIcon message={<I18nText id="select_version_prompt" transform="capitalize-first" />} />
+                )}
+            </PageHeader>
+            {isSelectFormVisible !== undefined && (
+                <SelectTranslationDrawer
+                    title={<I18nText id="select_versions" transform="capitalize" />}
+                    placement="bottom"
+                    closable={false}
+                    open={isSelectFormVisible}
+                    translations={translations}
+                    selected={selected}
+                    afterOpenChange={(open) => !open && setIsSelectFormVisible(undefined)}
+                    onCancel={() => setIsSelectFormVisible(false)}
+                    onConfirm={(ids) => {
+                        setSelected(ids)
+                        setIsSelectFormVisible(false)
+                    }}
+                />
+            )}
         </Layout>
     )
 }
@@ -75,3 +90,41 @@ const Detail: FC = () => {
 }
 
 export default Detail
+
+const SelectTranslationDrawer: FC<
+    DrawerProps & {
+        translations: Translation[]
+        selected?: Translation["id"][]
+        onCancel: () => void
+        onConfirm: (ids: Translation["id"][]) => void
+    }
+> = (props) => {
+    const { translations, selected: initialSelected = [], onCancel, onConfirm, ...drawerProps } = props
+    const [selected, setSelected] = useState<ImmutableSet<Translation["id"]>>(ImmutableSet(initialSelected))
+
+    return (
+        <Drawer
+            {...drawerProps}
+            extra={
+                <Space>
+                    <Button onClick={onCancel}>
+                        <I18nText id="cancel" transform="capitalize-first" />
+                    </Button>
+                    <Button type="primary" onClick={() => onConfirm(selected.toArray())}>
+                        <I18nText id="confirm" transform="capitalize-first" />
+                    </Button>
+                </Space>
+            }
+        >
+            <List
+                dataSource={translations}
+                renderItem={(t) => (
+                    <List.Item key={t.id}>
+                        <div>{t.title}</div>
+                        <Switch checked={selected.has(t.id)} onChange={(checked) => setSelected(checked ? selected.add(t.id) : selected.delete(t.id))} />
+                    </List.Item>
+                )}
+            />
+        </Drawer>
+    )
+}

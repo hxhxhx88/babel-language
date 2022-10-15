@@ -2,6 +2,7 @@
 
 import { FC } from "react"
 import { css } from "@emotion/react"
+import { FormattedMessage } from "react-intl"
 
 const cssCapitalizeFirst = css`
     ::first-letter {
@@ -9,8 +10,10 @@ const cssCapitalizeFirst = css`
     }
 `
 
-const Text: FC<{
-    transform: "capitalize" | "uppercase" | "lowercase" | "capitalize-first"
+type TransformName = "capitalize" | "uppercase" | "lowercase" | "capitalize-first"
+
+export const Text: FC<{
+    transform: TransformName
     children: React.ReactNode
 }> = ({ transform, children }) => {
     switch (transform) {
@@ -21,4 +24,10 @@ const Text: FC<{
     }
 }
 
-export default Text
+export const I18nText: FC<{ transform: TransformName; id: string }> = ({ transform, id }) => {
+    return (
+        <Text transform={transform}>
+            <FormattedMessage id={id} />
+        </Text>
+    )
+}
