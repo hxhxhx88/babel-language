@@ -121,16 +121,23 @@ const CorpusDetail: FC<Props> = (props) => {
                     title={corpus.title}
                 >
                     {selected.length > 0 ? (
-                        <>
-                            <I18nText id="selected_versions" transform="capitalize" />
-                            <ul style={{ marginBottom: 0 }}>
-                                {selected.map((tid) => (
-                                    <li key={tid}>
-                                        <Text strong={tid === reference}>{translationLookup.get(tid)?.title}</Text>
+                        reference && (
+                            <>
+                                <I18nText id="selected_versions" transform="capitalize" />
+                                <ul style={{ marginBottom: 0 }}>
+                                    <li>
+                                        <Text strong={true}>{translationLookup.get(reference)?.title}</Text>
                                     </li>
-                                ))}
-                            </ul>
-                        </>
+                                    {selected
+                                        .filter((t) => t !== reference)
+                                        .map((tid) => (
+                                            <li key={tid}>
+                                                <Text strong={tid === reference}>{translationLookup.get(tid)?.title}</Text>
+                                            </li>
+                                        ))}
+                                </ul>
+                            </>
+                        )
                     ) : (
                         <Alert type="warning" showIcon message={<I18nText id="select_version_prompt" transform="capitalize-first" />} />
                     )}
@@ -151,30 +158,18 @@ const CorpusDetail: FC<Props> = (props) => {
                 ) : (
                     <Spin spinning={isTranslateBlock.has(block.id)} key={block.id}>
                         <Paragraph>
-                            <blockquote>
-                                {expandedBlocks.has(block.id) ? (
-                                    <Text
-                                        code
-                                        onClick={() => {
-                                            setExpandedBlocks(expandedBlocks.remove(block.id))
-                                        }}
-                                    >
-                                        <DownOutlined />
-                                    </Text>
-                                ) : (
-                                    <Text
-                                        code
-                                        onClick={() => {
-                                            setExpandedBlocks(expandedBlocks.add(block.id))
-                                            if (!parallelBlocks.has(block.uuid)) {
-                                                translateBlock(block)
-                                            }
-                                        }}
-                                    >
-                                        <RightOutlined />
-                                    </Text>
-                                )}
-
+                            <pre
+                                onClick={() => {
+                                    if (expandedBlocks.has(block.id)) {
+                                        setExpandedBlocks(expandedBlocks.remove(block.id))
+                                    } else {
+                                        setExpandedBlocks(expandedBlocks.add(block.id))
+                                        if (!parallelBlocks.has(block.uuid)) {
+                                            translateBlock(block)
+                                        }
+                                    }
+                                }}
+                            >
                                 {block.content}
 
                                 {expandedBlocks.has(block.id) &&
@@ -187,7 +182,7 @@ const CorpusDetail: FC<Props> = (props) => {
                                                 {b?.content}
                                             </div>
                                         ))}
-                            </blockquote>
+                            </pre>
                         </Paragraph>
                     </Spin>
                 )
@@ -255,7 +250,7 @@ const SelectTranslationDrawer: FC<
                     <Button onClick={onCancel}>
                         <I18nText id="cancel" transform="capitalize-first" />
                     </Button>
-                    <Button type="primary" disabled={selected.size > 0 && reference === undefined} onClick={() => reference && onConfirm(selected.toArray(), reference)}>
+                    <Button type="primary" disabled={selected.size > 0 && reference === undefined} onClick={() => reference && onConfirm(selected.toArray().sort(), reference)}>
                         <I18nText id="confirm" transform="capitalize-first" />
                     </Button>
                 </Space>
