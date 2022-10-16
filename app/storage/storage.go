@@ -9,6 +9,7 @@ import (
 type idType = string
 type CorpusId = idType
 type TranslationId = idType
+type BlockId = idType
 
 type Corpus interface {
 	Create(context.Context, *babelapi.CorpusDraft) (CorpusId, error)
@@ -22,4 +23,8 @@ type Corpus interface {
 type Translation interface {
 	SearchBlocks(context.Context, TranslationId, *babelapi.BlockFilter, *babelapi.Pagination) ([]*babelapi.Block, error)
 	CountBlocks(context.Context, TranslationId, *babelapi.BlockFilter) (uint64, error)
+}
+
+type Block interface {
+	Translate(context.Context, BlockId, []TranslationId) ([]*babelapi.Block, error)
 }

@@ -2,7 +2,6 @@ package backend
 
 import (
 	"context"
-	"fmt"
 
 	"babel/openapi/gen/babelapi"
 
@@ -10,7 +9,6 @@ import (
 )
 
 func (s *mServer) SearchTranslationBlocks(ctx context.Context, request babelapi.SearchTranslationBlocksRequestObject) (babelapi.SearchTranslationBlocksResponseObject, error) {
-	fmt.Println("SearchTranslationBlocks")
 	tid := request.TranslationId
 	f := request.Body.Filter
 	p := normalizePagination(&request.Body.Pagination)
@@ -32,7 +30,6 @@ func (s *mServer) SearchTranslationBlocks(ctx context.Context, request babelapi.
 }
 
 func (s *mServer) CountTranslationBlocks(ctx context.Context, request babelapi.CountTranslationBlocksRequestObject) (babelapi.CountTranslationBlocksResponseObject, error) {
-	fmt.Println("CountTranslationBlocks")
 	tid := request.TranslationId
 	f := request.Body.Filter
 

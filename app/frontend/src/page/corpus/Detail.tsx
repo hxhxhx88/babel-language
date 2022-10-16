@@ -1,8 +1,8 @@
-import { FC, useState, useEffect, useMemo } from "react"
+import { FC, useState, useEffect, useMemo, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import { DefaultService, Corpus, Translation, Block, BlockFilter } from "openapi/babel"
-import { Switch, Space, Drawer, Alert, Breadcrumb, Button, PageHeader, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
-import { SettingOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons"
+import { Divider, Switch, Space, Drawer, Alert, Breadcrumb, Button, PageHeader, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
+import { RightOutlined, DownOutlined, SettingOutlined, LeftOutlined } from "@ant-design/icons"
 import { Link } from "react-router-dom"
 import { Set as ImmutableSet, Map as ImmutableMap } from "immutable"
 
@@ -12,6 +12,7 @@ import Layout from "Layout"
 import PageSpin from "component/PageSpin"
 import { I18nText } from "component/Text"
 
+const { Text, Paragraph } = Typography
 const { Option } = Select
 
 export interface Props {
@@ -33,7 +34,6 @@ const CorpusDetail: FC<Props> = (props) => {
     const [totalCount, setTotalCount] = useState<number>(0)
     const [query, setQuery] = useState<{ page: number | undefined; filter: BlockFilter }>({ filter: {}, page: undefined })
     useEffect(() => {
-        console.log(reference, query)
         if (!reference || query.page !== undefined) return
 
         setIsCountTranslationBlocks(true)
@@ -50,7 +50,7 @@ const CorpusDetail: FC<Props> = (props) => {
             .finally(() => setIsCountTranslationBlocks(false))
     }, [reference, query])
 
-    const [blocks, setBlocks] = useState<Block[]>([])
+    const [referenceBlocks, setReferenceBlocks] = useState<Block[]>([])
     const [isListTranslationBlocks, setIsListTranslationBlocks] = useState<boolean>(false)
     useEffect(() => {
         if (!reference || query.page === undefined) return
@@ -61,11 +61,46 @@ const CorpusDetail: FC<Props> = (props) => {
             pagination: { page: query.page, page_size: PAGE_SIZE },
         })
             .then(({ blocks }) => {
-                setBlocks(blocks)
+                setReferenceBlocks(blocks)
             })
             .catch(console.error)
             .finally(() => setIsListTranslationBlocks(false))
     }, [query])
+
+    const [parallelBlocks, setParallelBlocks] = useState<ImmutableMap<Block["uuid"], ImmutableMap<Translation["id"], Block>>>(ImmutableMap())
+    const [isTranslateBlock, setIsTranslateBlock] = useState<ImmutableSet<Block["id"]>>(ImmutableSet())
+    const translateBlock = useCallback(
+        (block: Block) => {
+            setIsTranslateBlock(isTranslateBlock.add(block.id))
+            DefaultService.translateBlock(block.id, {
+                translation_ids: selected.filter((tid) => tid !== reference),
+            })
+                .then(({ blocks }) => {
+                    const uuid = block.uuid
+                    setParallelBlocks(
+                        parallelBlocks.withMutations((p) => {
+                            if (!p.has(uuid)) {
+                                p.set(uuid, ImmutableMap())
+                            }
+                            const q = p.get(uuid)?.withMutations((q) => {
+                                blocks.forEach((blk) => {
+                                    const tid = blk.translation_id
+                                    q.set(tid, blk)
+                                })
+                            })
+                            if (q) {
+                                p.set(uuid, q)
+                            }
+                        })
+                    )
+                })
+                .catch(console.error)
+                .finally(() => setIsTranslateBlock(isTranslateBlock.remove(block.id)))
+        },
+        [selected, parallelBlocks]
+    )
+
+    const [expandedBlocks, setExpandedBlocks] = useState<ImmutableSet<Block["id"]>>(ImmutableSet())
 
     return (
         <Layout>
@@ -91,7 +126,7 @@ const CorpusDetail: FC<Props> = (props) => {
                             <ul style={{ marginBottom: 0 }}>
                                 {selected.map((tid) => (
                                     <li key={tid}>
-                                        <Typography.Text strong={tid === reference}>{translationLookup.get(tid)?.title}</Typography.Text>
+                                        <Text strong={tid === reference}>{translationLookup.get(tid)?.title}</Text>
                                     </li>
                                 ))}
                             </ul>
@@ -108,13 +143,53 @@ const CorpusDetail: FC<Props> = (props) => {
                 </div>
             )}
 
-            {blocks.map((block) =>
+            {referenceBlocks.map((block) =>
                 block.uuid.endsWith("/") ? (
                     <Button key={block.id} style={{ width: "100%", marginTop: 8 }} onClick={() => setQuery({ filter: { parent_block_id: block.id }, page: undefined })}>
                         {block.content}
                     </Button>
                 ) : (
-                    <p key={block.id}>{block.content}</p>
+                    <Spin spinning={isTranslateBlock.has(block.id)} key={block.id}>
+                        <Paragraph>
+                            <blockquote>
+                                {expandedBlocks.has(block.id) ? (
+                                    <Text
+                                        code
+                                        onClick={() => {
+                                            setExpandedBlocks(expandedBlocks.remove(block.id))
+                                        }}
+                                    >
+                                        <DownOutlined />
+                                    </Text>
+                                ) : (
+                                    <Text
+                                        code
+                                        onClick={() => {
+                                            setExpandedBlocks(expandedBlocks.add(block.id))
+                                            if (!parallelBlocks.has(block.uuid)) {
+                                                translateBlock(block)
+                                            }
+                                        }}
+                                    >
+                                        <RightOutlined />
+                                    </Text>
+                                )}
+
+                                {block.content}
+
+                                {expandedBlocks.has(block.id) &&
+                                    selected
+                                        .map((t) => parallelBlocks.get(block.uuid)?.get(t))
+                                        .filter(Boolean)
+                                        .map((b) => (
+                                            <div key={b?.id}>
+                                                <Divider style={{ margin: "8px 0" }} />
+                                                {b?.content}
+                                            </div>
+                                        ))}
+                            </blockquote>
+                        </Paragraph>
+                    </Spin>
                 )
             )}
 

@@ -250,6 +250,49 @@ func NewBabel() *openapi3.T {
 					},
 				},
 			},
+			"/block/{blockId}/_translate": &openapi3.PathItem{
+				Post: &openapi3.Operation{
+					Summary:     "Translate a block",
+					OperationID: "TranslateBlock",
+					Parameters: openapi3.Parameters{
+						&openapi3.ParameterRef{
+							Value: mBlockIdParameter,
+						},
+					},
+					RequestBody: &openapi3.RequestBodyRef{
+						Value: openapi3.NewRequestBody().WithJSONSchema(&openapi3.Schema{
+							Type:     openapi3.TypeObject,
+							Required: []string{"translation_ids"},
+							Properties: openapi3.Schemas{
+								"translation_ids": &openapi3.SchemaRef{
+									Value: &openapi3.Schema{
+										Type:  openapi3.TypeArray,
+										Items: mIdField,
+									},
+								},
+							},
+						}),
+					},
+					Responses: openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Value: openapi3.NewResponse().WithDescription("Success").WithJSONSchema(&openapi3.Schema{
+								Type:     openapi3.TypeObject,
+								Required: []string{"blocks"},
+								Properties: openapi3.Schemas{
+									"blocks": &openapi3.SchemaRef{
+										Value: &openapi3.Schema{
+											Type: openapi3.TypeArray,
+											Items: &openapi3.SchemaRef{
+												Ref: "#/components/schemas/Block",
+											},
+										},
+									},
+								},
+							}),
+						},
+					},
+				},
+			},
 		},
 		Components: openapi3.Components{
 			Schemas: openapi3.Schemas{
@@ -393,6 +436,13 @@ var mCorpusIdParameter = &openapi3.Parameter{
 
 var mTranslationIdParameter = &openapi3.Parameter{
 	Name:     "translationId",
+	In:       openapi3.ParameterInPath,
+	Required: true,
+	Schema:   mIdField,
+}
+
+var mBlockIdParameter = &openapi3.Parameter{
+	Name:     "blockId",
 	In:       openapi3.ParameterInPath,
 	Required: true,
 	Schema:   mIdField,

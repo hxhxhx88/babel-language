@@ -102,6 +102,7 @@ func mustCreateServer() (babelapi.ServerInterface, func()) {
 	opts = append(opts,
 		backend.WithCorpusStorage(postgres.NewCorpus(pg)),
 		backend.WithTranslationStorage(postgres.NewTranslation(pg)),
+		backend.WithBlockStorage(postgres.NewBlock(pg)),
 	)
 
 	// backedn

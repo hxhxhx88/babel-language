@@ -9,6 +9,7 @@ import (
 type Options struct {
 	storageCorpus      storage.Corpus
 	storageTranslation storage.Translation
+	storageBlock       storage.Block
 }
 
 func (o *Options) Validate() error {
@@ -17,6 +18,9 @@ func (o *Options) Validate() error {
 	}
 	if o.storageTranslation == nil {
 		return errors.New("missing translation storage")
+	}
+	if o.storageBlock == nil {
+		return errors.New("missing block storage")
 	}
 	return nil
 }
@@ -32,5 +36,11 @@ func WithCorpusStorage(s storage.Corpus) Option {
 func WithTranslationStorage(s storage.Translation) Option {
 	return func(o *Options) {
 		o.storageTranslation = s
+	}
+}
+
+func WithBlockStorage(s storage.Block) Option {
+	return func(o *Options) {
+		o.storageBlock = s
 	}
 }
