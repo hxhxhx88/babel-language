@@ -83,6 +83,11 @@ const CorpusDetail: FC<Props> = (props) => {
     const [isTranslateBlock, setIsTranslateBlock] = useState<ImmutableSet<Block["id"]>>(ImmutableSet())
     const translateBlock = useCallback(
         (block: Block) => {
+            const tids = selected.filter((tid) => tid !== reference)
+            if (tids.length === 0) {
+                return
+            }
+
             setIsTranslateBlock(isTranslateBlock.add(block.id))
             DefaultService.translateBlock(block.id, {
                 translation_ids: selected.filter((tid) => tid !== reference),
@@ -116,32 +121,30 @@ const CorpusDetail: FC<Props> = (props) => {
 
     return (
         <Layout>
-            <Spin spinning={isListTranslationBlocks || isCountTranslationBlocks}>
-                <Breadcrumb>
-                    <Breadcrumb.Item>
-                        <Link to={routePath(`/corpuses`)}>
-                            <I18nText id="corpus_list" transform="capitalize" />
-                        </Link>
-                    </Breadcrumb.Item>
+            <Breadcrumb>
+                <Breadcrumb.Item>
+                    <Link to={routePath(`/corpuses`)}>
+                        <I18nText id="corpus_list" transform="capitalize" />
+                    </Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item
+                    onClick={() => {
+                        setQuery({ parents: [], page: undefined })
+                    }}
+                >
+                    {corpus.title}
+                </Breadcrumb.Item>
+                {query.parents.map((p, idx) => (
                     <Breadcrumb.Item
+                        key={p.id}
                         onClick={() => {
-                            setQuery({ parents: [], page: undefined })
+                            setQuery({ parents: [...query.parents.slice(0, idx + 1)], page: undefined })
                         }}
                     >
-                        {corpus.title}
+                        {p.content}
                     </Breadcrumb.Item>
-                    {query.parents.map((p, idx) => (
-                        <Breadcrumb.Item
-                            key={p.id}
-                            onClick={() => {
-                                setQuery({ parents: [...query.parents.slice(0, idx + 1)], page: undefined })
-                            }}
-                        >
-                            {p.content}
-                        </Breadcrumb.Item>
-                    ))}
-                </Breadcrumb>
-            </Spin>
+                ))}
+            </Breadcrumb>
 
             {totalCount > 0 && (
                 <div style={{ marginTop: 16, marginBottom: 8, display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
@@ -206,6 +209,8 @@ const CorpusDetail: FC<Props> = (props) => {
                     }}
                 />
             )}
+
+            {(isListTranslationBlocks || isCountTranslationBlocks) && <PageSpin />}
         </Layout>
     )
 }
@@ -247,10 +252,14 @@ const SelectTranslationDrawer: FC<
             {...drawerProps}
             extra={
                 <Space>
-                    <Button onClick={onCancel}>
+                    <Button onClick={onCancel} disabled={initialReference === undefined}>
                         <I18nText id="cancel" transform="capitalize-first" />
                     </Button>
-                    <Button type="primary" disabled={selected.size > 0 && reference === undefined} onClick={() => reference && onConfirm(selected.toArray().sort(), reference)}>
+                    <Button
+                        type="primary"
+                        disabled={initialReference === undefined && selected.size > 0 && reference === undefined}
+                        onClick={() => reference && onConfirm(selected.toArray().sort(), reference)}
+                    >
                         <I18nText id="confirm" transform="capitalize-first" />
                     </Button>
                 </Space>
@@ -281,6 +290,7 @@ const SelectTranslationDrawer: FC<
                     placeholder={<I18nText id="reference_version" transform="capitalize" />}
                     onChange={setReference}
                     value={reference}
+                    placement="topLeft"
                 >
                     {translations
                         .filter((t) => selected.has(t.id))

@@ -11,7 +11,9 @@ import (
 func (s *mServer) TranslateBlock(ctx context.Context, request babelapi.TranslateBlockRequestObject) (babelapi.TranslateBlockResponseObject, error) {
 	tids := request.Body.TranslationIds
 	if len(tids) == 0 {
-		return &babelapi.TranslateBlock200JSONResponse{}, nil
+		return &babelapi.TranslateBlock200JSONResponse{
+			Blocks: make([]babelapi.Block, 0),
+		}, nil
 	}
 
 	bid := request.BlockId

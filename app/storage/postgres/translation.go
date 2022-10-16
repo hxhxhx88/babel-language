@@ -42,6 +42,7 @@ func (s *mTranslation) SearchBlocks(ctx context.Context, tid storage.Translation
 			b.content
 		FROM blocks AS b
 		%s
+		ORDER BY b.uuid ASC
 		LIMIT %d
 		OFFSET %d
 	`, filterClause, limit, offset)
