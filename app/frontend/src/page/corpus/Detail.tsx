@@ -255,11 +255,7 @@ const SelectTranslationDrawer: FC<
                     <Button onClick={onCancel} disabled={initialReference === undefined}>
                         <I18nText id="cancel" transform="capitalize-first" />
                     </Button>
-                    <Button
-                        type="primary"
-                        disabled={initialReference === undefined && selected.size > 0 && reference === undefined}
-                        onClick={() => reference && onConfirm(selected.toArray().sort(), reference)}
-                    >
+                    <Button type="primary" disabled={selected.size == 0 || reference === undefined} onClick={() => reference && onConfirm(selected.toArray().sort(), reference)}>
                         <I18nText id="confirm" transform="capitalize-first" />
                     </Button>
                 </Space>
