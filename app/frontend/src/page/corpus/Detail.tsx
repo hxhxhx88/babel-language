@@ -1,7 +1,7 @@
-import { FC, useState, useEffect, useMemo, useCallback } from "react"
+import { FC, useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import { DefaultService, Corpus, Translation, Block, BlockFilter } from "openapi/babel"
-import { Divider, Switch, Space, Drawer, Alert, Breadcrumb, Button, PageHeader, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
+import { Divider, Switch, Space, Drawer, Breadcrumb, Button, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
 import { RightOutlined, SettingOutlined, LeftOutlined } from "@ant-design/icons"
 import { Link } from "react-router-dom"
 import { Set as ImmutableSet, Map as ImmutableMap } from "immutable"
@@ -12,7 +12,7 @@ import Layout from "Layout"
 import PageSpin from "component/PageSpin"
 import { I18nText } from "component/Text"
 
-const { Text, Paragraph } = Typography
+const { Paragraph } = Typography
 const { Option } = Select
 
 export interface Props {
@@ -38,11 +38,7 @@ function filterFromQuery(q: Query): BlockFilter {
 const CorpusDetail: FC<Props> = (props) => {
     const { corpus, translations } = props
 
-    const translationLookup = useMemo(() => {
-        return ImmutableMap(translations.map((t) => [t.id, t]))
-    }, [translations])
-
-    const [isSelectFormVisible, setIsSelectFormVisible] = useState<boolean | undefined>(undefined)
+    const [isSelectFormVisible, setIsSelectFormVisible] = useState<boolean | undefined>(true)
     const [selected, setSelected] = useState<Translation["id"][]>([])
     const [reference, setReference] = useState<Translation["id"] | undefined>(undefined)
     const [isCountTranslationBlocks, setIsCountTranslationBlocks] = useState<boolean>(false)
@@ -121,63 +117,35 @@ const CorpusDetail: FC<Props> = (props) => {
     return (
         <Layout>
             <Spin spinning={isListTranslationBlocks || isCountTranslationBlocks}>
-                <PageHeader
-                    ghost={false}
-                    breadcrumb={
-                        <Breadcrumb>
-                            <Breadcrumb.Item>
-                                <Link to={routePath(`/corpuses`)}>
-                                    <I18nText id="corpus_list" transform="capitalize" />
-                                </Link>
-                            </Breadcrumb.Item>
-                            <Breadcrumb.Item
-                                onClick={() => {
-                                    setQuery({ parents: [], page: undefined })
-                                }}
-                            >
-                                {corpus.title}
-                            </Breadcrumb.Item>
-                            {query.parents.map((p, idx) => (
-                                <Breadcrumb.Item
-                                    key={p.id}
-                                    onClick={() => {
-                                        setQuery({ parents: [...query.parents.slice(0, idx + 1)], page: undefined })
-                                    }}
-                                >
-                                    {p.content}
-                                </Breadcrumb.Item>
-                            ))}
-                        </Breadcrumb>
-                    }
-                    extra={[<Button icon={<SettingOutlined />} key="setting" onClick={() => setIsSelectFormVisible(true)} />]}
-                    title={corpus.title}
-                >
-                    {selected.length > 0 ? (
-                        reference && (
-                            <>
-                                <I18nText id="selected_versions" transform="capitalize" />
-                                <ul style={{ marginBottom: 0 }}>
-                                    <li>
-                                        <Text strong={true}>{translationLookup.get(reference)?.title}</Text>
-                                    </li>
-                                    {selected
-                                        .filter((t) => t !== reference)
-                                        .map((tid) => (
-                                            <li key={tid}>
-                                                <Text strong={tid === reference}>{translationLookup.get(tid)?.title}</Text>
-                                            </li>
-                                        ))}
-                                </ul>
-                            </>
-                        )
-                    ) : (
-                        <Alert type="warning" showIcon message={<I18nText id="select_version_prompt" transform="capitalize-first" />} />
-                    )}
-                </PageHeader>
+                <Breadcrumb>
+                    <Breadcrumb.Item>
+                        <Link to={routePath(`/corpuses`)}>
+                            <I18nText id="corpus_list" transform="capitalize" />
+                        </Link>
+                    </Breadcrumb.Item>
+                    <Breadcrumb.Item
+                        onClick={() => {
+                            setQuery({ parents: [], page: undefined })
+                        }}
+                    >
+                        {corpus.title}
+                    </Breadcrumb.Item>
+                    {query.parents.map((p, idx) => (
+                        <Breadcrumb.Item
+                            key={p.id}
+                            onClick={() => {
+                                setQuery({ parents: [...query.parents.slice(0, idx + 1)], page: undefined })
+                            }}
+                        >
+                            {p.content}
+                        </Breadcrumb.Item>
+                    ))}
+                </Breadcrumb>
             </Spin>
 
             {totalCount > 0 && (
-                <div style={{ marginTop: 16, marginBottom: 8, display: "flex", flexDirection: "row", justifyContent: "flex-end" }}>
+                <div style={{ marginTop: 16, marginBottom: 8, display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
+                    <Button icon={<SettingOutlined />} key="setting" onClick={() => setIsSelectFormVisible(true)} />
                     <Pagination min={0} max={Math.ceil(totalCount / PAGE_SIZE) - 1} onConfirm={(page) => setQuery({ ...query, page })} />
                 </div>
             )}
