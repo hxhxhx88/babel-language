@@ -2,7 +2,7 @@ import { FC, useState, useEffect, useMemo, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import { DefaultService, Corpus, Translation, Block, BlockFilter } from "openapi/babel"
 import { Divider, Switch, Space, Drawer, Alert, Breadcrumb, Button, PageHeader, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
-import { RightOutlined, DownOutlined, SettingOutlined, LeftOutlined } from "@ant-design/icons"
+import { RightOutlined, SettingOutlined, LeftOutlined } from "@ant-design/icons"
 import { Link } from "react-router-dom"
 import { Set as ImmutableSet, Map as ImmutableMap } from "immutable"
 
@@ -20,6 +20,21 @@ export interface Props {
     translations: Translation[]
 }
 
+type Query = {
+    page: number | undefined
+    parents: Block[]
+}
+
+function filterFromQuery(q: Query): BlockFilter {
+    const n = q.parents.length
+    if (n === 0) {
+        return {}
+    }
+    return {
+        parent_block_id: q.parents[n - 1].id,
+    }
+}
+
 const CorpusDetail: FC<Props> = (props) => {
     const { corpus, translations } = props
 
@@ -32,13 +47,14 @@ const CorpusDetail: FC<Props> = (props) => {
     const [reference, setReference] = useState<Translation["id"] | undefined>(undefined)
     const [isCountTranslationBlocks, setIsCountTranslationBlocks] = useState<boolean>(false)
     const [totalCount, setTotalCount] = useState<number>(0)
-    const [query, setQuery] = useState<{ page: number | undefined; filter: BlockFilter }>({ filter: {}, page: undefined })
+    const [query, setQuery] = useState<Query>({ parents: [], page: undefined })
     useEffect(() => {
         if (!reference || query.page !== undefined) return
 
+        const n = query.parents.length
         setIsCountTranslationBlocks(true)
         DefaultService.countTranslationBlocks(reference, {
-            filter: query.filter,
+            filter: filterFromQuery(query),
         })
             .then(({ total_count }) => {
                 setTotalCount(total_count)
@@ -57,7 +73,7 @@ const CorpusDetail: FC<Props> = (props) => {
 
         setIsListTranslationBlocks(true)
         DefaultService.searchTranslationBlocks(reference, {
-            filter: query.filter,
+            filter: filterFromQuery(query),
             pagination: { page: query.page, page_size: PAGE_SIZE },
         })
             .then(({ blocks }) => {
@@ -114,7 +130,23 @@ const CorpusDetail: FC<Props> = (props) => {
                                     <I18nText id="corpus_list" transform="capitalize" />
                                 </Link>
                             </Breadcrumb.Item>
-                            <Breadcrumb.Item>{corpus.title}</Breadcrumb.Item>
+                            <Breadcrumb.Item
+                                onClick={() => {
+                                    setQuery({ parents: [], page: undefined })
+                                }}
+                            >
+                                {corpus.title}
+                            </Breadcrumb.Item>
+                            {query.parents.map((p, idx) => (
+                                <Breadcrumb.Item
+                                    key={p.id}
+                                    onClick={() => {
+                                        setQuery({ parents: [...query.parents.slice(0, idx + 1)], page: undefined })
+                                    }}
+                                >
+                                    {p.content}
+                                </Breadcrumb.Item>
+                            ))}
                         </Breadcrumb>
                     }
                     extra={[<Button icon={<SettingOutlined />} key="setting" onClick={() => setIsSelectFormVisible(true)} />]}
@@ -152,7 +184,7 @@ const CorpusDetail: FC<Props> = (props) => {
 
             {referenceBlocks.map((block) =>
                 block.uuid.endsWith("/") ? (
-                    <Button key={block.id} style={{ width: "100%", marginTop: 8 }} onClick={() => setQuery({ filter: { parent_block_id: block.id }, page: undefined })}>
+                    <Button key={block.id} style={{ width: "100%", marginTop: 8 }} onClick={() => setQuery({ parents: [...query.parents, block], page: undefined })}>
                         {block.content}
                     </Button>
                 ) : (
