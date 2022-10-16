@@ -77,7 +77,7 @@ const CorpusDetail: FC<Props> = (props) => {
             })
             .catch(console.error)
             .finally(() => setIsListTranslationBlocks(false))
-    }, [query])
+    }, [query, reference])
 
     const [parallelBlocks, setParallelBlocks] = useState<ImmutableMap<Block["uuid"], ImmutableMap<Translation["id"], Block>>>(ImmutableMap())
     const [isTranslateBlock, setIsTranslateBlock] = useState<ImmutableSet<Block["id"]>>(ImmutableSet())
