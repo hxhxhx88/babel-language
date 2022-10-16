@@ -95,9 +95,9 @@ func makeBlockFilterStatement(translationId int, f *babelapi.BlockFilter) (strin
 	args["translation_id"] = translationId
 
 	if pid := f.ParentBlockId; pid != nil {
-		joins = append(joins, `JOIN blocks AS pb ON b.uuid LIKE pb.uuid || '/%'`)
+		joins = append(joins, `JOIN blocks AS pb ON b.uuid LIKE pb.uuid || '%'`)
 		conds = append(conds,
-			"pb.id = :parent_block_id`",
+			"pb.id = :parent_block_id",
 			"b.rank = pb.rank + 1",
 		)
 		args["parent_block_id"] = *pid

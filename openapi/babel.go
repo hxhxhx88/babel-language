@@ -174,7 +174,7 @@ func NewBabel() *openapi3.T {
 					},
 				},
 			},
-			"/translation/{translationId}/blocks:search": &openapi3.PathItem{
+			"/translation/{translationId}/blocks/_search": &openapi3.PathItem{
 				Post: &openapi3.Operation{
 					Summary:     "Search translation blocks",
 					OperationID: "SearchTranslationBlocks",
@@ -217,8 +217,8 @@ func NewBabel() *openapi3.T {
 					},
 				},
 			},
-			"/translation/{translationId}/blocks:count": &openapi3.PathItem{
-				Get: &openapi3.Operation{
+			"/translation/{translationId}/blocks/_count": &openapi3.PathItem{
+				Post: &openapi3.Operation{
 					Summary:     "Count translation blocks",
 					OperationID: "CountTranslationBlocks",
 					Parameters: openapi3.Parameters{

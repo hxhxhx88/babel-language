@@ -114,7 +114,7 @@ func convert(doc *Document) ([]babelapi.BlockDraft, error) {
 
 	var blocks []babelapi.BlockDraft
 	for _, book := range doc.Books {
-		buuid := fmt.Sprintf("book.%02d", book.Number)
+		buuid := fmt.Sprintf("book.%02d/", book.Number)
 		if uuids[buuid] > 0 {
 			return nil, errors.Errorf("duplicate uuid: %s", buuid)
 		}
@@ -126,7 +126,7 @@ func convert(doc *Document) ([]babelapi.BlockDraft, error) {
 			Uuid:    buuid,
 		})
 		for _, chapter := range book.Chapters {
-			cuuid := fmt.Sprintf("%s/chapter.%03d", buuid, chapter.Number)
+			cuuid := fmt.Sprintf("%schapter.%03d/", buuid, chapter.Number)
 			if uuids[cuuid] > 0 {
 				return nil, errors.Errorf("duplicate uuid: %s", cuuid)
 			}
@@ -138,7 +138,7 @@ func convert(doc *Document) ([]babelapi.BlockDraft, error) {
 				Uuid:    cuuid,
 			})
 			for _, verse := range chapter.Verses {
-				vuuid := fmt.Sprintf("%s/verse.%03d", cuuid, verse.Number)
+				vuuid := fmt.Sprintf("%sverse.%03d", cuuid, verse.Number)
 				if idx := uuids[vuuid]; idx > 0 {
 					blocks[idx].Content += " " + strings.TrimSpace(verse.Content)
 					log.Printf("combined duplicate verses [%s] to [%s]", vuuid, blocks[idx].Content)

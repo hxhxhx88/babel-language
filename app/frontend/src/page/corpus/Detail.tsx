@@ -1,7 +1,7 @@
-import { FC, useState, useEffect, useMemo, HTMLAttributes } from "react"
+import { FC, useState, useEffect, useMemo } from "react"
 import { useParams } from "react-router-dom"
-import { DefaultService, Corpus, Translation, Block } from "openapi/babel"
-import { Card, Switch, Space, Drawer, Alert, Breadcrumb, Button, PageHeader, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
+import { DefaultService, Corpus, Translation, Block, BlockFilter } from "openapi/babel"
+import { Switch, Space, Drawer, Alert, Breadcrumb, Button, PageHeader, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
 import { SettingOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons"
 import { Link } from "react-router-dom"
 import { Set as ImmutableSet, Map as ImmutableMap } from "immutable"
@@ -31,42 +31,45 @@ const CorpusDetail: FC<Props> = (props) => {
     const [reference, setReference] = useState<Translation["id"] | undefined>(undefined)
     const [isCountTranslationBlocks, setIsCountTranslationBlocks] = useState<boolean>(false)
     const [totalCount, setTotalCount] = useState<number>(0)
-    const [page, setPage] = useState<number | undefined>(undefined)
+    const [query, setQuery] = useState<{ page: number | undefined; filter: BlockFilter }>({ filter: {}, page: undefined })
     useEffect(() => {
-        if (!reference) return
+        console.log(reference, query)
+        if (!reference || query.page !== undefined) return
 
         setIsCountTranslationBlocks(true)
-        DefaultService.countTranslationBlocks(reference)
+        DefaultService.countTranslationBlocks(reference, {
+            filter: query.filter,
+        })
             .then(({ total_count }) => {
                 setTotalCount(total_count)
                 if (total_count > 0) {
-                    setPage(0)
+                    setQuery({ ...query, page: 0 })
                 }
             })
             .catch(console.error)
             .finally(() => setIsCountTranslationBlocks(false))
-    }, [reference])
+    }, [reference, query])
 
     const [blocks, setBlocks] = useState<Block[]>([])
     const [isListTranslationBlocks, setIsListTranslationBlocks] = useState<boolean>(false)
     useEffect(() => {
-        if (!reference || page === undefined) return
+        if (!reference || query.page === undefined) return
 
         setIsListTranslationBlocks(true)
         DefaultService.searchTranslationBlocks(reference, {
-            filter: {},
-            pagination: { page, page_size: PAGE_SIZE },
+            filter: query.filter,
+            pagination: { page: query.page, page_size: PAGE_SIZE },
         })
             .then(({ blocks }) => {
                 setBlocks(blocks)
             })
             .catch(console.error)
             .finally(() => setIsListTranslationBlocks(false))
-    }, [page])
+    }, [query])
 
     return (
         <Layout>
-            <Spin spinning={isCountTranslationBlocks}>
+            <Spin spinning={isListTranslationBlocks || isCountTranslationBlocks}>
                 <PageHeader
                     ghost={false}
                     breadcrumb={
@@ -100,14 +103,20 @@ const CorpusDetail: FC<Props> = (props) => {
             </Spin>
 
             {totalCount > 0 && (
-                <div style={{ marginTop: 16, display: "flex", flexDirection: "row", justifyContent: "flex-end" }}>
-                    <Pagination min={0} max={Math.ceil(totalCount / PAGE_SIZE) - 1} onConfirm={setPage} />
+                <div style={{ marginTop: 16, marginBottom: 8, display: "flex", flexDirection: "row", justifyContent: "flex-end" }}>
+                    <Pagination min={0} max={Math.ceil(totalCount / PAGE_SIZE) - 1} onConfirm={(page) => setQuery({ ...query, page })} />
                 </div>
             )}
 
-            {blocks.map((block) => (
-                <div key={block.id}>{block.content}</div>
-            ))}
+            {blocks.map((block) =>
+                block.uuid.endsWith("/") ? (
+                    <Button key={block.id} style={{ width: "100%", marginTop: 8 }} onClick={() => setQuery({ filter: { parent_block_id: block.id }, page: undefined })}>
+                        {block.content}
+                    </Button>
+                ) : (
+                    <p key={block.id}>{block.content}</p>
+                )
+            )}
 
             {isSelectFormVisible !== undefined && (
                 <SelectTranslationDrawer
