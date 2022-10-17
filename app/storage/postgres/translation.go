@@ -105,6 +105,10 @@ func makeBlockFilterStatement(translationId int, f *babelapi.BlockFilter) (strin
 	} else {
 		conds = append(conds, "b.rank = 1")
 	}
+	if q := f.Content; q != nil && *q != "" {
+		conds = append(conds, "EXISTS (SELECT 1 FROM blocks AS x WHERE x.translation_id = b.translation_id AND x.uuid LIKE b.uuid || '%' AND x.content ILIKE '%' || :content || '%')")
+		args["content"] = *q
+	}
 
 	q := strings.Join(joins, " ")
 	q += ` WHERE `

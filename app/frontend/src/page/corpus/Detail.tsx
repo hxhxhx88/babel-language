@@ -1,7 +1,7 @@
 import { FC, useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import { DefaultService, Corpus, Translation, Block, BlockFilter } from "openapi/babel"
-import { Form, Tag, Divider, Switch, Space, Drawer, Breadcrumb, Button, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
+import { Input, Form, Tag, Divider, Switch, Space, Drawer, Breadcrumb, Button, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
 import { SearchOutlined, DownOutlined, RightOutlined, SettingOutlined, LeftOutlined } from "@ant-design/icons"
 import { Link } from "react-router-dom"
 import { Set as ImmutableSet, Map as ImmutableMap } from "immutable"
@@ -20,17 +20,31 @@ export interface Props {
     translations: Translation[]
 }
 
+type Search = {
+    content?: string
+}
+
+function isEmptySearch(s: Search): boolean {
+    if (!!s.content) {
+        return false
+    }
+    return true
+}
+
 type Query = {
     page: number | undefined
     parents: Block[]
+    search: Search | undefined
 }
 
-function filterFromQuery(q: Query): BlockFilter {
+function makeFilter(q: Query): BlockFilter {
+    const f: BlockFilter = { ...q.search }
     const n = q.parents.length
     if (n === 0) {
-        return {}
+        return f
     }
     return {
+        ...f,
         parent_block_id: q.parents[n - 1].id,
     }
 }
@@ -43,19 +57,22 @@ const CorpusDetail: FC<Props> = (props) => {
     const [reference, setReference] = useState<Translation["id"] | undefined>(undefined)
     const [isCountTranslationBlocks, setIsCountTranslationBlocks] = useState<boolean>(false)
     const [totalCount, setTotalCount] = useState<number>(0)
-    const [query, setQuery] = useState<Query>({ parents: [], page: undefined })
+    const [query, setQuery] = useState<Query>({ parents: [], page: undefined, search: undefined })
+    const [isSearchFormVisible, setIsSearchFormVisible] = useState<boolean | undefined>(undefined)
     useEffect(() => {
         if (!reference || query.page !== undefined) return
 
         const n = query.parents.length
         setIsCountTranslationBlocks(true)
         DefaultService.countTranslationBlocks(reference, {
-            filter: filterFromQuery(query),
+            filter: makeFilter(query),
         })
             .then(({ total_count }) => {
                 setTotalCount(total_count)
                 if (total_count > 0) {
                     setQuery({ ...query, page: 0 })
+                } else {
+                    setReferenceBlocks([])
                 }
             })
             .catch(console.error)
@@ -69,7 +86,7 @@ const CorpusDetail: FC<Props> = (props) => {
 
         setIsListTranslationBlocks(true)
         DefaultService.searchTranslationBlocks(reference, {
-            filter: filterFromQuery(query),
+            filter: makeFilter(query),
             pagination: { page: query.page, page_size: PAGE_SIZE },
         })
             .then(({ blocks }) => {
@@ -77,7 +94,7 @@ const CorpusDetail: FC<Props> = (props) => {
             })
             .catch(console.error)
             .finally(() => setIsListTranslationBlocks(false))
-    }, [query, reference])
+    }, [reference, query])
 
     const [parallelBlocks, setParallelBlocks] = useState<ImmutableMap<Block["uuid"], ImmutableMap<Translation["id"], Block>>>(ImmutableMap())
     const [isTranslateBlock, setIsTranslateBlock] = useState<ImmutableSet<Block["id"]>>(ImmutableSet())
@@ -121,7 +138,7 @@ const CorpusDetail: FC<Props> = (props) => {
 
     return (
         <Layout>
-            <Breadcrumb>
+            <Breadcrumb style={{ cursor: "pointer" }}>
                 <Breadcrumb.Item>
                     <Link to={routePath(`/corpuses`)}>
                         <I18nText id="corpus_list" transform="capitalize" />
@@ -129,7 +146,7 @@ const CorpusDetail: FC<Props> = (props) => {
                 </Breadcrumb.Item>
                 <Breadcrumb.Item
                     onClick={() => {
-                        setQuery({ parents: [], page: undefined })
+                        setQuery({ ...query, parents: [], page: undefined })
                     }}
                 >
                     {corpus.title}
@@ -138,7 +155,7 @@ const CorpusDetail: FC<Props> = (props) => {
                     <Breadcrumb.Item
                         key={p.id}
                         onClick={() => {
-                            setQuery({ parents: [...query.parents.slice(0, idx + 1)], page: undefined })
+                            setQuery({ ...query, parents: [...query.parents.slice(0, idx + 1)], page: undefined })
                         }}
                     >
                         {p.content}
@@ -146,19 +163,17 @@ const CorpusDetail: FC<Props> = (props) => {
                 ))}
             </Breadcrumb>
 
-            {totalCount > 0 && (
-                <div style={{ marginTop: 16, marginBottom: 16, display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
-                    <Pagination min={0} max={Math.ceil(totalCount / PAGE_SIZE) - 1} onConfirm={(page) => setQuery({ ...query, page })} />
-                    <Space>
-                        <Button icon={<SearchOutlined />} />
-                        <Button icon={<SettingOutlined />} onClick={() => setIsSelectFormVisible(true)} />
-                    </Space>
-                </div>
-            )}
+            <div style={{ marginTop: 16, marginBottom: 16, display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
+                <Pagination min={0} max={Math.ceil(totalCount / PAGE_SIZE) - 1} onConfirm={(page) => setQuery({ ...query, page })} />
+                <Space>
+                    <Button icon={<SearchOutlined />} onClick={() => setIsSearchFormVisible(true)} type={query.search === undefined ? "default" : "primary"} />
+                    <Button icon={<SettingOutlined />} onClick={() => setIsSelectFormVisible(true)} />
+                </Space>
+            </div>
 
             {referenceBlocks.map((block) =>
                 block.uuid.endsWith("/") ? (
-                    <Button key={block.id} style={{ width: "100%", marginBottom: 8 }} onClick={() => setQuery({ parents: [...query.parents, block], page: undefined })}>
+                    <Button key={block.id} style={{ width: "100%", marginBottom: 8 }} onClick={() => setQuery({ ...query, parents: [...query.parents, block], page: undefined })}>
                         {block.content}
                     </Button>
                 ) : (
@@ -214,6 +229,23 @@ const CorpusDetail: FC<Props> = (props) => {
                         setSelected(ids)
                         setReference(reference)
                         setIsSelectFormVisible(false)
+                    }}
+                />
+            )}
+
+            {isSearchFormVisible !== undefined && (
+                <SearchBlockDrawer
+                    search={query.search}
+                    width="50%"
+                    title={<I18nText id="search" transform="capitalize" />}
+                    placement="right"
+                    closable={false}
+                    open={isSearchFormVisible}
+                    afterOpenChange={(open) => !open && setIsSearchFormVisible(undefined)}
+                    onCancel={() => setIsSearchFormVisible(false)}
+                    onConfirm={(search) => {
+                        setQuery({ ...query, page: undefined, search })
+                        setIsSearchFormVisible(false)
                     }}
                 />
             )}
@@ -276,7 +308,14 @@ const SelectTranslationDrawer: FC<
                             {translations
                                 .filter((t) => selected.has(t.id))
                                 .map((t) => (
-                                    <Option key={t.id}>{t.title}</Option>
+                                    <Option key={t.id}>
+                                        <Space>
+                                            {t.title}
+                                            <Tag color="blue">
+                                                <I18nText id={`iso_639_3.${t.language_iso_639_3}`} />
+                                            </Tag>
+                                        </Space>
+                                    </Option>
                                 ))}
                         </Select>
                     </Form.Item>
@@ -317,12 +356,13 @@ const Pagination: FC<{
 }> = ({ min, max, curr = 0, onConfirm }) => {
     const [page, setPage] = useState<number>(curr)
     const [popoverOpen, setPopoverOpen] = useState<boolean>(false)
+    const disabled = max < min
 
     return (
         <Space>
             <Button
                 icon={<LeftOutlined />}
-                disabled={page == min}
+                disabled={page == min || disabled}
                 onClick={() => {
                     setPage(page - 1)
                     onConfirm(page - 1)
@@ -351,16 +391,56 @@ const Pagination: FC<{
                     </Space>
                 }
             >
-                <Button style={{ width: 80 }}>{`${page + 1} / ${max + 1}`}</Button>
+                <Button style={{ width: 80 }} disabled={disabled}>
+                    {disabled ? `0 / 0` : `${page + 1} / ${max + 1}`}
+                </Button>
             </Popover>
             <Button
                 icon={<RightOutlined />}
-                disabled={page == max}
+                disabled={page == max || disabled}
                 onClick={() => {
                     setPage(page + 1)
                     onConfirm(page + 1)
                 }}
             />
         </Space>
+    )
+}
+
+const SearchBlockDrawer: FC<
+    DrawerProps & {
+        search?: Search
+        onCancel: () => void
+        onConfirm: (search: Search | undefined) => void
+    }
+> = (props) => {
+    const { search: initialSearch = {}, onCancel, onConfirm, ...drawerProps } = props
+    const [search, setSearch] = useState<Search>(initialSearch)
+
+    return (
+        <Drawer
+            {...drawerProps}
+            extra={
+                <Space>
+                    <Button onClick={onCancel}>
+                        <I18nText id="cancel" transform="capitalize-first" />
+                    </Button>
+                    <Button onClick={() => onConfirm(undefined)}>
+                        <I18nText id="reset" transform="capitalize-first" />
+                    </Button>
+                    <Button type="primary" onClick={() => onConfirm(isEmptySearch(search) ? undefined : search)}>
+                        <I18nText id="confirm" transform="capitalize-first" />
+                    </Button>
+                </Space>
+            }
+        >
+            <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                <Form layout="vertical">
+                    <Form.Item label={<I18nText id="content" transform="capitalize" />}>
+                        <Input value={search.content} onChange={(e) => setSearch({ ...search, content: e.target.value })} />
+                    </Form.Item>
+                </Form>
+            </div>
+        </Drawer>
     )
 }

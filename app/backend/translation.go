@@ -19,7 +19,7 @@ func (s *mServer) SearchTranslationBlocks(ctx context.Context, request babelapi.
 		return nil, err
 	}
 
-	var bs []babelapi.Block
+	bs := make([]babelapi.Block, 0)
 	for _, b := range blocks {
 		bs = append(bs, *b)
 	}

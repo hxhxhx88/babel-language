@@ -399,6 +399,7 @@ func NewBabel() *openapi3.T {
 									Description: "If provided, all sub-blocks, i.e. thoese blocks whose uuid has this block's uuid as prefix, at next rank will be returned, otherwise returns top-level blocks.",
 								},
 							},
+							"content": mStringField,
 						},
 					},
 				},
