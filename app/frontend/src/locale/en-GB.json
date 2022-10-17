@@ -3,10 +3,14 @@
     "select_translation_prompt": "select translations",
     "error": "error",
     "error_no_translations": "missing translations",
-    "selected_versions": "selected versions",
-    "select_version_prompt": "please select some versions",
     "select_versions": "select versions",
     "reference_version": "reference version",
     "confirm": "confirm",
-    "cancel": "cancel"
+    "cancel": "cancel",
+    "iso_639_3.lat": "Latin",
+    "iso_639_3.eng": "English",
+    "iso_639_3.grc": "Ancient Greek",
+    "iso_639_3.fra": "French",
+    "iso_639_3.ita": "Italian",
+    "iso_639_3.deu": "German"
 }

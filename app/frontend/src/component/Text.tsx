@@ -24,10 +24,12 @@ export const Text: FC<{
     }
 }
 
-export const I18nText: FC<{ transform: TransformName; id: string }> = ({ transform, id }) => {
-    return (
+export const I18nText: FC<{ transform?: TransformName; id: string }> = ({ transform, id }) => {
+    return transform ? (
         <Text transform={transform}>
             <FormattedMessage id={id} />
         </Text>
+    ) : (
+        <FormattedMessage id={id} />
     )
 }

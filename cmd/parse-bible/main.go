@@ -48,6 +48,11 @@ func main() {
 				Usage:    "address to the babel server",
 				Required: true,
 			},
+			&cli.StringFlag{
+				Name:     "testment",
+				Usage:    "new or old testment",
+				Required: true,
+			},
 		},
 		Action: run,
 	}
@@ -77,8 +82,12 @@ type Document struct {
 }
 
 func run(ctx *cli.Context) error {
-	filePath := ctx.String("path")
+	testment := ctx.String("testment")
+	if testment != "old" && testment != "new" {
+		return errors.Errorf("--testment must be `old` or `new`, got %s", testment)
+	}
 
+	filePath := ctx.String("path")
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return errors.WithStack(err)
@@ -89,7 +98,7 @@ func run(ctx *cli.Context) error {
 		return errors.WithStack(err)
 	}
 
-	blocks, err := convert(&doc)
+	blocks, err := convert(&doc, testment == "new")
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -109,11 +118,21 @@ func run(ctx *cli.Context) error {
 	return nil
 }
 
-func convert(doc *Document) ([]babelapi.BlockDraft, error) {
+func convert(doc *Document, newTestment bool) ([]babelapi.BlockDraft, error) {
 	uuids := make(map[string]int)
 
 	var blocks []babelapi.BlockDraft
 	for _, book := range doc.Books {
+		if newTestment {
+			if book.Number < 40 {
+				continue
+			}
+		} else {
+			if book.Number >= 40 {
+				continue
+			}
+		}
+
 		buuid := fmt.Sprintf("book.%02d/", book.Number)
 		if uuids[buuid] > 0 {
 			return nil, errors.Errorf("duplicate uuid: %s", buuid)

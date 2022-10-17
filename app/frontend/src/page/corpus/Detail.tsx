@@ -1,8 +1,8 @@
 import { FC, useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import { DefaultService, Corpus, Translation, Block, BlockFilter } from "openapi/babel"
-import { Divider, Switch, Space, Drawer, Breadcrumb, Button, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
-import { RightOutlined, SettingOutlined, LeftOutlined } from "@ant-design/icons"
+import { Form, Tag, Divider, Switch, Space, Drawer, Breadcrumb, Button, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
+import { SearchOutlined, DownOutlined, RightOutlined, SettingOutlined, LeftOutlined } from "@ant-design/icons"
 import { Link } from "react-router-dom"
 import { Set as ImmutableSet, Map as ImmutableMap } from "immutable"
 
@@ -147,34 +147,25 @@ const CorpusDetail: FC<Props> = (props) => {
             </Breadcrumb>
 
             {totalCount > 0 && (
-                <div style={{ marginTop: 16, marginBottom: 8, display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
-                    <Button icon={<SettingOutlined />} key="setting" onClick={() => setIsSelectFormVisible(true)} />
+                <div style={{ marginTop: 16, marginBottom: 16, display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
                     <Pagination min={0} max={Math.ceil(totalCount / PAGE_SIZE) - 1} onConfirm={(page) => setQuery({ ...query, page })} />
+                    <Space>
+                        <Button icon={<SearchOutlined />} />
+                        <Button icon={<SettingOutlined />} onClick={() => setIsSelectFormVisible(true)} />
+                    </Space>
                 </div>
             )}
 
             {referenceBlocks.map((block) =>
                 block.uuid.endsWith("/") ? (
-                    <Button key={block.id} style={{ width: "100%", marginTop: 8 }} onClick={() => setQuery({ parents: [...query.parents, block], page: undefined })}>
+                    <Button key={block.id} style={{ width: "100%", marginBottom: 8 }} onClick={() => setQuery({ parents: [...query.parents, block], page: undefined })}>
                         {block.content}
                     </Button>
                 ) : (
-                    <Spin spinning={isTranslateBlock.has(block.id)} key={block.id}>
-                        <Paragraph>
-                            <pre
-                                onClick={() => {
-                                    if (expandedBlocks.has(block.id)) {
-                                        setExpandedBlocks(expandedBlocks.remove(block.id))
-                                    } else {
-                                        setExpandedBlocks(expandedBlocks.add(block.id))
-                                        if (!parallelBlocks.has(block.uuid)) {
-                                            translateBlock(block)
-                                        }
-                                    }
-                                }}
-                            >
+                    <div key={block.id} style={{ width: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
+                        <Paragraph style={{ flexGrow: 1, marginRight: 8, marginBottom: 0 }}>
+                            <pre style={{ marginTop: 0 }}>
                                 {block.content}
-
                                 {expandedBlocks.has(block.id) &&
                                     selected
                                         .map((t) => parallelBlocks.get(block.uuid)?.get(t))
@@ -187,14 +178,31 @@ const CorpusDetail: FC<Props> = (props) => {
                                         ))}
                             </pre>
                         </Paragraph>
-                    </Spin>
+                        <Spin spinning={isTranslateBlock.has(block.id)}>
+                            <Button
+                                style={{ width: 35, height: 35 }}
+                                icon={expandedBlocks.has(block.id) ? <DownOutlined /> : <RightOutlined />}
+                                onClick={() => {
+                                    if (expandedBlocks.has(block.id)) {
+                                        setExpandedBlocks(expandedBlocks.remove(block.id))
+                                    } else {
+                                        setExpandedBlocks(expandedBlocks.add(block.id))
+                                        if (!parallelBlocks.has(block.uuid)) {
+                                            translateBlock(block)
+                                        }
+                                    }
+                                }}
+                            />
+                        </Spin>
+                    </div>
                 )
             )}
 
             {isSelectFormVisible !== undefined && (
                 <SelectTranslationDrawer
+                    width="50%"
                     title={<I18nText id="select_versions" transform="capitalize" />}
-                    placement="bottom"
+                    placement="right"
                     closable={false}
                     open={isSelectFormVisible}
                     translations={translations}
@@ -262,12 +270,28 @@ const SelectTranslationDrawer: FC<
             }
         >
             <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                <Form layout="vertical">
+                    <Form.Item label={<I18nText id="reference_version" transform="capitalize" />} style={{ marginBottom: 16 }}>
+                        <Select disabled={selected.size == 0} style={{ width: "100%" }} onChange={setReference} value={reference}>
+                            {translations
+                                .filter((t) => selected.has(t.id))
+                                .map((t) => (
+                                    <Option key={t.id}>{t.title}</Option>
+                                ))}
+                        </Select>
+                    </Form.Item>
+                </Form>
                 <List
                     style={{ flexGrow: 1, overflow: "scroll" }}
                     dataSource={translations}
                     renderItem={(t) => (
                         <List.Item key={t.id}>
-                            <div>{t.title}</div>
+                            <Space>
+                                {t.title}
+                                <Tag color="blue">
+                                    <I18nText id={`iso_639_3.${t.language_iso_639_3}`} />
+                                </Tag>
+                            </Space>
                             <Switch
                                 checked={selected.has(t.id)}
                                 onChange={(checked) => {
@@ -280,20 +304,6 @@ const SelectTranslationDrawer: FC<
                         </List.Item>
                     )}
                 />
-                <Select
-                    disabled={selected.size == 0}
-                    style={{ width: "100%" }}
-                    placeholder={<I18nText id="reference_version" transform="capitalize" />}
-                    onChange={setReference}
-                    value={reference}
-                    placement="topLeft"
-                >
-                    {translations
-                        .filter((t) => selected.has(t.id))
-                        .map((t) => (
-                            <Option key={t.id}>{t.title}</Option>
-                        ))}
-                </Select>
             </div>
         </Drawer>
     )
