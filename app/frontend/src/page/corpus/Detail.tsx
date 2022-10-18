@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useCallback } from "react"
+import { FC, useState, useEffect, useCallback, useMemo } from "react"
 import { useParams } from "react-router-dom"
 import { DefaultService, Corpus, Translation, Block, BlockFilter } from "openapi/babel"
 import { Input, Form, Tag, Divider, Switch, Space, Drawer, Breadcrumb, Button, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
@@ -52,18 +52,36 @@ function makeFilter(q: Query): BlockFilter {
 const CorpusDetail: FC<Props> = (props) => {
     const { corpus, translations } = props
 
-    const [isSelectFormVisible, setIsSelectFormVisible] = useState<boolean | undefined>(true)
+    const translationLookup = useMemo(() => ImmutableMap(translations.map((t) => [t.id, t])), [translations])
+    const showDictionary = useCallback(
+        (tid: Translation["id"]) => {
+            const text = document.getSelection()?.toString().trim()
+            if (!text) {
+                return
+            }
+            const t = translationLookup.get(tid)
+            if (!t) {
+                console.warn(`translation ${tid} not found`)
+                return
+            }
+            setFocused({ text, lang: t.language_iso_639_3 })
+            setIsDictionaryVisible(true)
+        },
+        [translationLookup]
+    )
+
+    const [isSelectingFormVisible, setIsSelectingFormVisible] = useState<boolean | undefined>(true)
     const [selected, setSelected] = useState<Translation["id"][]>([])
     const [reference, setReference] = useState<Translation["id"] | undefined>(undefined)
-    const [isCountTranslationBlocks, setIsCountTranslationBlocks] = useState<boolean>(false)
+    const [isCountingTranslationBlocks, setIsCountingTranslationBlocks] = useState<boolean>(false)
     const [totalCount, setTotalCount] = useState<number>(0)
     const [query, setQuery] = useState<Query>({ parents: [], page: undefined, search: undefined })
-    const [isSearchFormVisible, setIsSearchFormVisible] = useState<boolean | undefined>(undefined)
+    const [isSearchingFormVisible, setIsSearchingFormVisible] = useState<boolean | undefined>(undefined)
     useEffect(() => {
         if (!reference || query.page !== undefined) return
 
         const n = query.parents.length
-        setIsCountTranslationBlocks(true)
+        setIsCountingTranslationBlocks(true)
         DefaultService.countTranslationBlocks(reference, {
             filter: makeFilter(query),
         })
@@ -76,15 +94,15 @@ const CorpusDetail: FC<Props> = (props) => {
                 }
             })
             .catch(console.error)
-            .finally(() => setIsCountTranslationBlocks(false))
+            .finally(() => setIsCountingTranslationBlocks(false))
     }, [reference, query])
 
     const [referenceBlocks, setReferenceBlocks] = useState<Block[]>([])
-    const [isListTranslationBlocks, setIsListTranslationBlocks] = useState<boolean>(false)
+    const [isListingTranslationBlocks, setIsListingTranslationBlocks] = useState<boolean>(false)
     useEffect(() => {
         if (!reference || query.page === undefined) return
 
-        setIsListTranslationBlocks(true)
+        setIsListingTranslationBlocks(true)
         DefaultService.searchTranslationBlocks(reference, {
             filter: makeFilter(query),
             pagination: { page: query.page, page_size: PAGE_SIZE },
@@ -93,11 +111,11 @@ const CorpusDetail: FC<Props> = (props) => {
                 setReferenceBlocks(blocks)
             })
             .catch(console.error)
-            .finally(() => setIsListTranslationBlocks(false))
+            .finally(() => setIsListingTranslationBlocks(false))
     }, [reference, query])
 
     const [parallelBlocks, setParallelBlocks] = useState<ImmutableMap<Block["uuid"], ImmutableMap<Translation["id"], Block>>>(ImmutableMap())
-    const [isTranslateBlock, setIsTranslateBlock] = useState<ImmutableSet<Block["id"]>>(ImmutableSet())
+    const [isTranslatingBlock, setIsTranslatingBlock] = useState<ImmutableSet<Block["id"]>>(ImmutableSet())
     const translateBlock = useCallback(
         (block: Block) => {
             const tids = selected.filter((tid) => tid !== reference)
@@ -105,7 +123,7 @@ const CorpusDetail: FC<Props> = (props) => {
                 return
             }
 
-            setIsTranslateBlock(isTranslateBlock.add(block.id))
+            setIsTranslatingBlock(isTranslatingBlock.add(block.id))
             DefaultService.translateBlock(block.id, {
                 translation_ids: selected.filter((tid) => tid !== reference),
             })
@@ -129,12 +147,14 @@ const CorpusDetail: FC<Props> = (props) => {
                     )
                 })
                 .catch(console.error)
-                .finally(() => setIsTranslateBlock(isTranslateBlock.remove(block.id)))
+                .finally(() => setIsTranslatingBlock(isTranslatingBlock.remove(block.id)))
         },
         [selected, parallelBlocks]
     )
 
     const [expandedBlocks, setExpandedBlocks] = useState<ImmutableSet<Block["id"]>>(ImmutableSet())
+    const [focused, setFocused] = useState<{ text: string; lang: string } | undefined>(undefined)
+    const [isDictionaryVisible, setIsDictionaryVisible] = useState<boolean>(false)
 
     return (
         <Layout>
@@ -166,8 +186,8 @@ const CorpusDetail: FC<Props> = (props) => {
             <div style={{ marginTop: 16, marginBottom: 16, display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
                 <Pagination min={0} max={Math.ceil(totalCount / PAGE_SIZE) - 1} onConfirm={(page) => setQuery({ ...query, page })} />
                 <Space>
-                    <Button icon={<SearchOutlined />} onClick={() => setIsSearchFormVisible(true)} type={query.search === undefined ? "default" : "primary"} />
-                    <Button icon={<SettingOutlined />} onClick={() => setIsSelectFormVisible(true)} />
+                    <Button icon={<SearchOutlined />} onClick={() => setIsSearchingFormVisible(true)} type={query.search === undefined ? "default" : "primary"} />
+                    <Button icon={<SettingOutlined />} onClick={() => setIsSelectingFormVisible(true)} />
                 </Space>
             </div>
 
@@ -180,20 +200,20 @@ const CorpusDetail: FC<Props> = (props) => {
                     <div key={block.id} style={{ width: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
                         <Paragraph style={{ flexGrow: 1, marginRight: 8, marginBottom: 0 }}>
                             <pre style={{ marginTop: 0 }}>
-                                {block.content}
+                                <span onDoubleClick={() => showDictionary(block.translation_id)}>{block.content}</span>
                                 {expandedBlocks.has(block.id) &&
                                     selected
                                         .map((t) => parallelBlocks.get(block.uuid)?.get(t))
                                         .filter(Boolean)
                                         .map((b) => (
-                                            <div key={b?.id}>
+                                            <div key={b?.id} onDoubleClick={() => showDictionary(b!.translation_id)}>
                                                 <Divider style={{ margin: "8px 0" }} />
                                                 {b?.content}
                                             </div>
                                         ))}
                             </pre>
                         </Paragraph>
-                        <Spin spinning={isTranslateBlock.has(block.id)}>
+                        <Spin spinning={isTranslatingBlock.has(block.id)}>
                             <Button
                                 style={{ width: 35, height: 35 }}
                                 icon={expandedBlocks.has(block.id) ? <DownOutlined /> : <RightOutlined />}
@@ -213,44 +233,59 @@ const CorpusDetail: FC<Props> = (props) => {
                 )
             )}
 
-            {isSelectFormVisible !== undefined && (
+            {isSelectingFormVisible !== undefined && (
                 <SelectTranslationDrawer
                     width="50%"
                     title={<I18nText id="select_versions" transform="capitalize" />}
                     placement="right"
                     closable={false}
-                    open={isSelectFormVisible}
+                    open={isSelectingFormVisible}
                     translations={translations}
                     reference={reference}
                     selected={selected}
-                    afterOpenChange={(open) => !open && setIsSelectFormVisible(undefined)}
-                    onCancel={() => setIsSelectFormVisible(false)}
+                    afterOpenChange={(open) => !open && setIsSelectingFormVisible(undefined)}
+                    onCancel={() => setIsSelectingFormVisible(false)}
                     onConfirm={(ids, reference) => {
                         setSelected(ids)
                         setReference(reference)
-                        setIsSelectFormVisible(false)
+                        setIsSelectingFormVisible(false)
+                        setParallelBlocks(ImmutableMap())
+                        setExpandedBlocks(ImmutableSet())
                     }}
                 />
             )}
 
-            {isSearchFormVisible !== undefined && (
+            {isSearchingFormVisible !== undefined && (
                 <SearchBlockDrawer
                     search={query.search}
                     width="50%"
                     title={<I18nText id="search" transform="capitalize" />}
                     placement="right"
                     closable={false}
-                    open={isSearchFormVisible}
-                    afterOpenChange={(open) => !open && setIsSearchFormVisible(undefined)}
-                    onCancel={() => setIsSearchFormVisible(false)}
+                    open={isSearchingFormVisible}
+                    afterOpenChange={(open) => !open && setIsSearchingFormVisible(undefined)}
+                    onCancel={() => setIsSearchingFormVisible(false)}
                     onConfirm={(search) => {
                         setQuery({ ...query, page: undefined, search })
-                        setIsSearchFormVisible(false)
+                        setIsSearchingFormVisible(false)
                     }}
                 />
             )}
 
-            {(isListTranslationBlocks || isCountTranslationBlocks) && <PageSpin />}
+            {focused !== undefined && (
+                <DictionaryDrawer
+                    text={focused.text}
+                    lang={focused.lang}
+                    height="60%"
+                    title={<I18nText id="dictionary" transform="capitalize" />}
+                    placement="bottom"
+                    open={isDictionaryVisible}
+                    onClose={() => setIsDictionaryVisible(false)}
+                    afterOpenChange={(open) => !open && setFocused(undefined)}
+                />
+            )}
+
+            {(isListingTranslationBlocks || isCountingTranslationBlocks) && <PageSpin />}
         </Layout>
     )
 }
@@ -441,6 +476,26 @@ const SearchBlockDrawer: FC<
                     </Form.Item>
                 </Form>
             </div>
+        </Drawer>
+    )
+}
+
+const wiktionaryLanguageCode = ImmutableMap<string, string>({
+    lat: "Latin",
+    eng: "English",
+    fra: "French",
+    ita: "Italian",
+    deu: "German",
+    grc: "Ancient_Greek",
+})
+
+const DictionaryDrawer: FC<DrawerProps & { text: string; lang: string }> = (props) => {
+    const { text, lang, ...drawerProps } = props
+    const code = wiktionaryLanguageCode.get(lang)
+    const src = `https://en.wiktionary.org/wiki/${text}#${code}`
+    return (
+        <Drawer {...drawerProps}>
+            <iframe src={src} style={{ width: "100%", height: "100%", border: "none" }} />
         </Drawer>
     )
 }

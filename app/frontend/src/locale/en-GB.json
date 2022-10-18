@@ -10,6 +10,7 @@
     "reset": "reset",
     "content": "content",
     "search": "search",
+    "dictionary": "dictionary",
     "iso_639_3.lat": "Latin",
     "iso_639_3.eng": "English",
     "iso_639_3.grc": "Ancient Greek",
