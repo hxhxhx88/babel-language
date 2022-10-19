@@ -23,7 +23,7 @@ const List: FC = () => {
         <Layout>
             <Space direction="vertical" style={{ width: "100%" }}>
                 {corpuses.map((c) => (
-                    <Button key={c.id} style={{ width: "100%" }}>
+                    <Button key={c.id} style={{ width: "100%", textAlign: "left" }} size="large">
                         <Link to={routePath(`/corpus/${c.id}`)}>{c.title}</Link>
                     </Button>
                 ))}

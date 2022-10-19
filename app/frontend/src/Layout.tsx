@@ -15,7 +15,7 @@ const PageLayout: FC<Prop> = (props) => {
         <Layout style={{ minHeight: "100vh" }}>
             <Header style={{ display: "flex", flexDirection: "row", alignItems: "center", paddingRight: 16, paddingLeft: 16 }}>
                 <Link to={routePath()}>
-                    <Title style={{ color: "white", margin: 16 }}>Babel</Title>
+                    <Title style={{ color: "white", margin: 0, marginTop: 8, fontFamily: "Luminari, fantasy" }}>Babel</Title>
                 </Link>
             </Header>
             <Content style={{ padding: 16 }}>{props.children}</Content>

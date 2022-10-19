@@ -4,6 +4,7 @@ import { DefaultService, Corpus, Translation, Block, BlockFilter } from "openapi
 import { Input, Form, Tag, Divider, Switch, Space, Drawer, Breadcrumb, Button, DrawerProps, List, Select, Typography, InputNumber, Popover, Spin } from "antd"
 import { SearchOutlined, DownOutlined, RightOutlined, SettingOutlined, LeftOutlined } from "@ant-design/icons"
 import { Link } from "react-router-dom"
+import { useWindowSize } from "@react-hook/window-size"
 import { Set as ImmutableSet, Map as ImmutableMap } from "immutable"
 
 import { PAGE_SIZE } from "constant"
@@ -156,6 +157,9 @@ const CorpusDetail: FC<Props> = (props) => {
     const [focused, setFocused] = useState<{ text: string; lang: string } | undefined>(undefined)
     const [isDictionaryVisible, setIsDictionaryVisible] = useState<boolean>(false)
 
+    const [winWidth, winHeight] = useWindowSize()
+    const drawerPlacement = winWidth > winHeight ? "right" : "bottom"
+
     return (
         <Layout>
             <Breadcrumb style={{ cursor: "pointer" }}>
@@ -193,7 +197,12 @@ const CorpusDetail: FC<Props> = (props) => {
 
             {referenceBlocks.map((block) =>
                 block.uuid.endsWith("/") ? (
-                    <Button key={block.id} style={{ width: "100%", marginBottom: 8 }} onClick={() => setQuery({ ...query, parents: [...query.parents, block], page: undefined })}>
+                    <Button
+                        size="large"
+                        key={block.id}
+                        style={{ width: "100%", marginBottom: 8, textAlign: "left" }}
+                        onClick={() => setQuery({ ...query, parents: [...query.parents, block], page: undefined })}
+                    >
                         {block.content}
                     </Button>
                 ) : (
@@ -237,7 +246,7 @@ const CorpusDetail: FC<Props> = (props) => {
                 <SelectTranslationDrawer
                     width="50%"
                     title={<I18nText id="select_versions" transform="capitalize" />}
-                    placement="right"
+                    placement={drawerPlacement}
                     closable={false}
                     open={isSelectingFormVisible}
                     translations={translations}
@@ -260,7 +269,7 @@ const CorpusDetail: FC<Props> = (props) => {
                     search={query.search}
                     width="50%"
                     title={<I18nText id="search" transform="capitalize" />}
-                    placement="right"
+                    placement={drawerPlacement}
                     closable={false}
                     open={isSearchingFormVisible}
                     afterOpenChange={(open) => !open && setIsSearchingFormVisible(undefined)}
@@ -357,24 +366,47 @@ const SelectTranslationDrawer: FC<
                 </Form>
                 <List
                     style={{ flexGrow: 1, overflow: "scroll" }}
-                    dataSource={translations}
-                    renderItem={(t) => (
-                        <List.Item key={t.id}>
-                            <Space>
-                                {t.title}
-                                <Tag color="blue">
-                                    <I18nText id={`iso_639_3.${t.language_iso_639_3}`} />
-                                </Tag>
-                            </Space>
+                    header={
+                        <div style={{ textAlign: "right" }}>
                             <Switch
-                                checked={selected.has(t.id)}
+                                checked={selected.size === translations.length}
                                 onChange={(checked) => {
-                                    setSelected(checked ? selected.add(t.id) : selected.delete(t.id))
-                                    if (checked && !reference) {
-                                        setReference(t.id)
+                                    if (checked) {
+                                        setSelected(
+                                            selected.withMutations((s) => {
+                                                translations.map((t) => s.add(t.id))
+                                            })
+                                        )
+                                    } else {
+                                        setSelected(selected.clear())
+                                        setReference(undefined)
                                     }
                                 }}
                             />
+                        </div>
+                    }
+                    dataSource={translations}
+                    renderItem={(t) => (
+                        <List.Item key={t.id}>
+                            <div style={{ display: "flex", width: "100%" }}>
+                                <div style={{ flexGrow: 1 }}>
+                                    <Tag color="blue" style={{ marginRight: 8 }}>
+                                        <I18nText id={`iso_639_3.${t.language_iso_639_3}`} />
+                                    </Tag>
+                                    {t.title}
+                                </div>
+                                <div style={{ width: 60, textAlign: "right" }}>
+                                    <Switch
+                                        checked={selected.has(t.id)}
+                                        onChange={(checked) => {
+                                            setSelected(checked ? selected.add(t.id) : selected.delete(t.id))
+                                            if (checked && !reference) {
+                                                setReference(t.id)
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
                         </List.Item>
                     )}
                 />
