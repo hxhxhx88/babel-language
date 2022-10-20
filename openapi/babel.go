@@ -31,9 +31,6 @@ func NewBabel() *openapi3.T {
 									"commit_identifier": mStringField,
 									"commit_time":       mStringField,
 									"version":           mStringField,
-									"corpus": &openapi3.SchemaRef{
-										Ref: "#/components/schemas/CorpusDraft",
-									},
 								},
 							}),
 						},
