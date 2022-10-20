@@ -245,6 +245,7 @@ const CorpusDetail: FC<Props> = (props) => {
             {isSelectingFormVisible !== undefined && (
                 <SelectTranslationDrawer
                     width="50%"
+                    height="50%"
                     title={<I18nText id="select_versions" transform="capitalize" />}
                     placement={drawerPlacement}
                     closable={false}
@@ -268,6 +269,7 @@ const CorpusDetail: FC<Props> = (props) => {
                 <SearchBlockDrawer
                     search={query.search}
                     width="50%"
+                    height="50%"
                     title={<I18nText id="search" transform="capitalize" />}
                     placement={drawerPlacement}
                     closable={false}
@@ -285,9 +287,10 @@ const CorpusDetail: FC<Props> = (props) => {
                 <DictionaryDrawer
                     text={focused.text}
                     lang={focused.lang}
-                    height="60%"
+                    width="50%"
+                    height="50%"
                     title={<I18nText id="dictionary" transform="capitalize" />}
-                    placement="bottom"
+                    placement={drawerPlacement}
                     open={isDictionaryVisible}
                     onClose={() => setIsDictionaryVisible(false)}
                     afterOpenChange={(open) => !open && setFocused(undefined)}
