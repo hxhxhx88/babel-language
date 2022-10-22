@@ -30,10 +30,10 @@
         "openapi/*"
     ],
     "rules": {
-        "indent": ["error", 4],
         "linebreak-style": ["error", "unix"],
         "quotes": ["error", "double"],
         "semi": ["error", "never"],
-        "react/react-in-jsx-scope": "off"
+        "react/react-in-jsx-scope": "off",
+        "react/no-unknown-property": ["error", { "ignore": ["css"] }]
     }
 }
