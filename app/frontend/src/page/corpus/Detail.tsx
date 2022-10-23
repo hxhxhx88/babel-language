@@ -26,7 +26,7 @@ type Search = {
 }
 
 function isEmptySearch(s: Search): boolean {
-    if (!!s.content) {
+    if (s.content) {
         return false
     }
     return true
@@ -81,7 +81,6 @@ const CorpusDetail: FC<Props> = (props) => {
     useEffect(() => {
         if (!reference || query.page !== undefined) return
 
-        const n = query.parents.length
         setIsCountingTranslationBlocks(true)
         DefaultService.countTranslationBlocks(reference, {
             filter: makeFilter(query),
@@ -164,7 +163,7 @@ const CorpusDetail: FC<Props> = (props) => {
         <Layout>
             <Breadcrumb style={{ cursor: "pointer" }}>
                 <Breadcrumb.Item>
-                    <Link to={routePath(`/corpuses`)}>
+                    <Link to={routePath("/corpuses")}>
                         <I18nText id="corpus_list" transform="capitalize" />
                     </Link>
                 </Breadcrumb.Item>
@@ -213,13 +212,14 @@ const CorpusDetail: FC<Props> = (props) => {
                                 {expandedBlocks.has(block.id) &&
                                     selected
                                         .map((t) => parallelBlocks.get(block.uuid)?.get(t))
-                                        .filter(Boolean)
-                                        .map((b) => (
-                                            <div key={b?.id} onDoubleClick={() => showDictionary(b!.translation_id)}>
-                                                <Divider style={{ margin: "8px 0" }} />
-                                                {b?.content}
-                                            </div>
-                                        ))}
+                                        .map((b) =>
+                                            b ? (
+                                                <div key={b.id} onDoubleClick={() => showDictionary(b.translation_id)}>
+                                                    <Divider style={{ margin: "8px 0" }} />
+                                                    {b?.content}
+                                                </div>
+                                            ) : null
+                                        )}
                             </pre>
                         </Paragraph>
                         <Spin spinning={isTranslatingBlock.has(block.id)}>
@@ -462,7 +462,7 @@ const Pagination: FC<{
                 }
             >
                 <Button style={{ width: 80 }} disabled={disabled}>
-                    {disabled ? `0 / 0` : `${page + 1} / ${max + 1}`}
+                    {disabled ? "0 / 0" : `${page + 1} / ${max + 1}`}
                 </Button>
             </Popover>
             <Button
